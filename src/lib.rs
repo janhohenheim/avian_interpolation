@@ -27,6 +27,7 @@ pub mod prelude {
 
 mod interpolate;
 mod previous_transform;
+mod lifecycle;
 
 #[cfg(feature = "2d")]
 #[derive(Default)]
@@ -47,7 +48,7 @@ type AvianInterpolationPlugin = AvianInterpolation3dPlugin;
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<NonInterpolated>();
-        app.add_plugins((previous_transform::plugin, interpolate::plugin));
+        app.add_plugins((previous_transform::plugin, interpolate::plugin, lifecycle::plugin));
         app.configure_sets(
             PhysicsSchedule,
             (

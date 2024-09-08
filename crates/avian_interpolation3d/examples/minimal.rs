@@ -1,9 +1,8 @@
+use std::f32::consts::TAU;
+
 use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
-use bevy::{
-    app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::{color::palettes::tailwind, prelude::*};
 
 fn main() {
     App::new()
@@ -52,8 +51,12 @@ fn setup(
 
 fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
     let elapsed = time.elapsed_seconds();
-    let max_offset = 3.;
+    let max_offset = 1.6;
+    let speed = 0.4;
     for mut position in &mut moving {
-        position.0.x = elapsed.sin() * max_offset;
+        let interpolant = elapsed * speed * TAU;
+        let angular_position = |a| a * a * a * max_offset;
+        position.0.x = angular_position(interpolant.sin());
+        position.0.y = angular_position(interpolant.cos());
     }
 }

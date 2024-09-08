@@ -54,5 +54,10 @@ fn interpolate_transform(
             let scale = scale.extend(0.);
             transform.scale = scale;
         }
+
+        let delta = (transform.translation - previous_position.0).length();
+        if delta > 0.0 {
+            info!("delta: {}", delta);
+        }
     }
 }
