@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use crate::prelude::*;
-use avian::math::Vector;
+use avian::math::{Quaternion, Vector};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -12,20 +12,20 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Component, Deref, DerefMut)]
-pub(crate) struct PreviousPosition(pub Position);
+pub(crate) struct PreviousPosition(pub Vector);
 
 impl From<Position> for PreviousPosition {
     fn from(value: Position) -> Self {
-        PreviousPosition(value)
+        PreviousPosition(value.0)
     }
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Component, Deref, DerefMut)]
-pub(crate) struct PreviousRotation(pub Rotation);
+pub(crate) struct PreviousRotation(pub Quaternion);
 
 impl From<Rotation> for PreviousRotation {
     fn from(value: Rotation) -> Self {
-        PreviousRotation(value)
+        PreviousRotation(value.into())
     }
 }
 
@@ -43,10 +43,9 @@ fn cache_previous_transform(
         (
             Ref<Position>,
             Ref<Rotation>,
-            Option<Ref<Collider>>,
             &mut PreviousPosition,
             &mut PreviousRotation,
-            Option<&mut PreviousScale>,
+            Option<(Ref<Collider>, &mut PreviousScale)>,
         ),
         (
             Without<NonInterpolated>,
@@ -54,14 +53,8 @@ fn cache_previous_transform(
         ),
     >,
 ) {
-    for (
-        position,
-        rotation,
-        collider,
-        mut previous_position,
-        mut previous_rotation,
-        mut previous_scale,
-    ) in &mut q_physics
+    for (position, rotation, mut previous_position, mut previous_rotation, maybe_scale) in
+        &mut q_physics
     {
         if position.is_changed() {
             *previous_position = position.clone().into();
@@ -69,11 +62,9 @@ fn cache_previous_transform(
         if rotation.is_changed() {
             *previous_rotation = rotation.clone().into();
         }
-        if let Some(mut previous_scale) = previous_scale {
-            if let Some(collider) = collider {
-                if collider.is_changed() {
-                    *previous_scale = collider.as_ref().into();
-                }
+        if let Some((collider, mut previous_scale)) = maybe_scale {
+            if collider.is_changed() {
+                *previous_scale = collider.as_ref().into();
             }
         }
     }

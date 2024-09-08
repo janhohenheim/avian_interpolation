@@ -17,25 +17,42 @@ fn interpolate_transform(
             &mut Transform,
             &Position,
             &Rotation,
-            Option<&Collider>,
             &PreviousPosition,
             &PreviousRotation,
-            Option<&PreviousScale>,
+            Option<(&Collider, &PreviousScale)>,
         ),
-        (Without<NonInterpolated>,),
+        Without<NonInterpolated>,
     >,
 ) {
     // The overstep fraction is a value between 0 and 1 that tells us how far we are between two fixed timesteps.
     let alpha = fixed_time.overstep_fraction();
 
-    for (
-        mut transform,
-        position,
-        rotation,
-        collider,
-        previous_position,
-        previous_rotation,
-        previous_scale,
-    ) in &mut q_interpolant
-    {}
+    for (mut transform, position, rotation, previous_position, previous_rotation, maybe_scale) in
+        &mut q_interpolant
+    {
+        let translation = previous_position.lerp(position.0, alpha);
+        #[cfg(feature = "2d")]
+        let translation = translation.extend(0.);
+        transform.translation = translation;
+
+        let rotation = {
+            #[cfg(feature = "2d")]
+            {
+                Quat::from(*rotation)
+            }
+            #[cfg(feature = "3d")]
+            {
+                rotation.0
+            }
+        };
+
+        transform.rotation = previous_rotation.lerp(rotation, alpha);
+
+        if let Some((collider, previous_scale)) = maybe_scale {
+            let scale = previous_scale.lerp(collider.scale(), alpha);
+            #[cfg(feature = "2d")]
+            let scale = scale.extend(0.);
+            transform.scale = scale;
+        }
+    }
 }

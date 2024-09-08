@@ -4,6 +4,8 @@
 
 #[cfg(all(feature = "2d", feature = "3d"))]
 compile_error!("Cannot enable both 2d and 3d features at the same time.");
+#[cfg(all(not(feature = "2d"), not(feature = "3d")))]
+compile_error!("Cannot run without either 2d or 3d feature.");
 
 use avian::prelude::*;
 #[cfg(feature = "2d")]
