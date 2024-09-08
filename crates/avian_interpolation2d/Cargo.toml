@@ -1,0 +1,38 @@
+[package]
+name = "avian_interpolation2d"
+version = "0.1.0"
+authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+exclude = [
+    "/docs/",
+    "/.github/",
+]
+
+[features]
+default = [
+    "2d",
+]
+2d = []
+
+
+[lib]
+name = "avian_interpolation2d"
+path = "../../src/lib.rs"
+required-features = ["2d"]
+bench = false
+
+[dependencies]
+
+[dependencies.avian2d]
+git = "https://github.com/Jondolf/avian"
+default-features = false
+
+
+[dependencies.bevy]
+version = "0.14.1"
+default-features = false
+
+[dev-dependencies]
+bevy = { version = "0.14", features = ["wayland", "dynamic_linking"] }
+avian2d = { git = "https://github.com/Jondolf/avian" }
