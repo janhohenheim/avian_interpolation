@@ -1,5 +1,5 @@
 #![allow(clippy::too_many_arguments, clippy::type_complexity, unexpected_cfgs)]
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
 #![doc = include_str!("../readme.md")]
 
 #[cfg(all(feature = "2d", feature = "3d"))]
@@ -26,8 +26,9 @@ pub mod prelude {
 }
 
 mod interpolate;
-mod previous_transform;
 mod lifecycle;
+mod previous_transform;
+mod transform_sync;
 
 #[cfg(feature = "2d")]
 #[derive(Default)]
@@ -48,7 +49,12 @@ type AvianInterpolationPlugin = AvianInterpolation3dPlugin;
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<NonInterpolated>();
-        app.add_plugins((previous_transform::plugin, interpolate::plugin, lifecycle::plugin));
+        app.add_plugins((
+            previous_transform::plugin,
+            interpolate::plugin,
+            lifecycle::plugin,
+            transform_sync::plugin,
+        ));
         app.configure_sets(
             PhysicsSchedule,
             (

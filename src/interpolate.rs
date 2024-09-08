@@ -30,6 +30,8 @@ fn interpolate_transform(
     for (mut transform, position, rotation, previous_position, previous_rotation, maybe_scale) in
         &mut q_interpolant
     {
+        //dbg!(previous_position.0);
+        //dbg!(position.0);
         let translation = previous_position.lerp(position.0, alpha);
         #[cfg(feature = "2d")]
         let translation = translation.extend(0.);
