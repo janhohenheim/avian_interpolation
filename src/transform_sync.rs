@@ -17,11 +17,14 @@ fn disable_transform_sync(sync_config: Option<ResMut<SyncConfig>>) {
         };
 
         panic!(
-            "Failed to find `SyncConfig` in world. \
-            This probably means that you forgot to add the avian physics plugins \
-            to your app before adding the avian interpolation plugin.\n\
-            Help: try the following:\n\
-            `app.add_plugins((PhysicsPlugins::default(), {interpolation_plugin}))`"
+            concat!(
+                "Failed to find `SyncConfig` in world. ",
+                "This probably means that you forgot to add the avian physics plugins ",
+                "to your app before adding the avian interpolation plugin.\n",
+                "Help: try the following:\n",
+                "`app.add_plugins((PhysicsPlugins::default(), {interpolation_plugin}))`",
+            ),
+            interpolation_plugin = interpolation_plugin
         );
     };
     *sync_config = SyncConfig {

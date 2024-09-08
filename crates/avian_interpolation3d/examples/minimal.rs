@@ -4,6 +4,8 @@ use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
 use bevy::{color::palettes::tailwind, prelude::*};
 
+mod util;
+
 fn main() {
     App::new()
         .add_plugins((
@@ -11,6 +13,7 @@ fn main() {
             PhysicsPlugins::default(),
             AvianInterpolation3dPlugin::default(),
         ))
+        .add_plugins(util::plugin)
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, move_box)
         .run();

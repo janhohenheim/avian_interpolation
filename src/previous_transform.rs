@@ -5,7 +5,7 @@ use avian::math::{Quaternion, Vector};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
-        PhysicsSchedule,
+        FixedPreUpdate,
         cache_previous_transform
             .in_set(FixedAvianInterpolationSystem::CachePreviousPhysicsTransform),
     );

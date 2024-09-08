@@ -56,7 +56,7 @@ impl Plugin for AvianInterpolationPlugin {
             transform_sync::plugin,
         ));
         app.configure_sets(
-            PhysicsSchedule,
+            FixedPreUpdate,
             (
                 FixedAvianInterpolationSystem::First,
                 FixedAvianInterpolationSystem::CachePreviousPhysicsTransform,
