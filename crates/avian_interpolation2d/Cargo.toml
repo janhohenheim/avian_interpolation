@@ -12,6 +12,8 @@ exclude = [
 [features]
 default = [
     "2d",
+    "avian2d/f32",
+    "avian2d/parry-f32",
 ]
 2d = []
 
@@ -19,7 +21,6 @@ default = [
 [lib]
 name = "avian_interpolation2d"
 path = "../../src/lib.rs"
-required-features = ["2d"]
 bench = false
 
 [dependencies]
@@ -27,7 +28,9 @@ bench = false
 [dependencies.avian2d]
 git = "https://github.com/Jondolf/avian"
 default-features = false
-
+features = [
+    "2d",
+]
 
 [dependencies.bevy]
 version = "0.14.2"

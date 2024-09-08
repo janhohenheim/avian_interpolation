@@ -2,14 +2,29 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../readme.md")]
 
-use bevy::prelude::*;
+#[cfg(all(feature = "2d", feature = "3d"))]
+compile_error!("Cannot enable both 2d and 3d features at the same time.");
+
+use avian::prelude::*;
+#[cfg(feature = "2d")]
+use avian2d as avian;
+#[cfg(feature = "3d")]
+use avian3d as avian;
+use bevy::{app::RunFixedMainLoop, prelude::*, time::run_fixed_main_schedule};
 
 pub mod prelude {
+    pub(crate) use crate::avian::{self, prelude::*};
     #[cfg(feature = "2d")]
     pub use crate::AvianInterpolation2dPlugin;
     #[cfg(feature = "3d")]
     pub use crate::AvianInterpolation3dPlugin;
+    pub use crate::NonInterpolated;
+    pub(crate) use crate::{FixedAvianInterpolationSystem, VariableAvianInterpolationSystem};
+    pub(crate) use bevy::prelude::*;
 }
+
+mod interpolate;
+mod previous_transform;
 
 #[cfg(feature = "2d")]
 #[derive(Default)]
@@ -28,5 +43,48 @@ type AvianInterpolationPlugin = AvianInterpolation2dPlugin;
 type AvianInterpolationPlugin = AvianInterpolation3dPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
-    fn build(&self, _app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.register_type::<NonInterpolated>();
+        app.add_plugins((previous_transform::plugin, interpolate::plugin));
+        app.configure_sets(
+            PhysicsSchedule,
+            (
+                FixedAvianInterpolationSystem::First,
+                FixedAvianInterpolationSystem::CachePreviousPhysicsTransform,
+                FixedAvianInterpolationSystem::Last,
+            )
+                .in_set(PhysicsStepSet::First)
+                .chain(),
+        );
+        app.configure_sets(
+            RunFixedMainLoop,
+            (
+                VariableAvianInterpolationSystem::First,
+                VariableAvianInterpolationSystem::Interpolate,
+                VariableAvianInterpolationSystem::Last,
+            )
+                .after(run_fixed_main_schedule)
+                .chain(),
+        );
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
+#[reflect(Component)]
+pub struct NonInterpolated;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+#[non_exhaustive]
+pub enum FixedAvianInterpolationSystem {
+    First,
+    CachePreviousPhysicsTransform,
+    Last,
+}
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+#[non_exhaustive]
+pub enum VariableAvianInterpolationSystem {
+    First,
+    Interpolate,
+    Last,
 }
