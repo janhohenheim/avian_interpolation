@@ -60,7 +60,7 @@ fn interpolate_transform(
         };
 
         let rotation = match interpolation_mode {
-            InterpolationMode::Linear => previous_rotation.lerp(rotation, alpha),
+            InterpolationMode::Linear => previous_rotation.slerp(rotation, alpha),
             InterpolationMode::None => rotation,
         };
 
@@ -70,7 +70,7 @@ fn interpolate_transform(
                 InterpolationMode::None => collider.scale(),
             };
             #[cfg(feature = "2d")]
-            let scale = scale.extend(0.);
+            let scale = scale.extend(1.);
             scale
         } else {
             Vec3::splat(1.0)
