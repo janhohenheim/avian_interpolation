@@ -22,10 +22,11 @@ fn insert_previous_position(
     let Ok((position, has_interpolation_mode)) = q_position.get(entity) else {
         return;
     };
-    commands.entity(entity).insert((
-        PreviousPosition::from(*position),
-    ));
+    commands
+        .entity(entity)
+        .insert((PreviousPosition::from(*position),));
     if !has_interpolation_mode {
+        // We assume that having `Rotation` or `Collider` without `Position` would be malformed, so we insert this here.
         commands.entity(entity).insert(InterpolationMode::default());
     }
 }
