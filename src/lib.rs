@@ -42,14 +42,7 @@ mod transform_sync;
 ///     .add_plugins((
 ///         DefaultPlugins,
 ///         PhysicsPlugins::default(),
-#[cfg_attr(
-    feature = "2d",
-    doc = "         AvianInterpolation2dPlugin::default(),"
-)]
-#[cfg_attr(
-    feature = "3d",
-    doc = "         AvianInterpolation3dPlugin::default(),"
-)]
+///         AvianInterpolationPlugin::default(),
 ///     ));
 /// ```
 ///
