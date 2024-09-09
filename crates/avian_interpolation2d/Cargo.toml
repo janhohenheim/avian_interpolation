@@ -8,6 +8,8 @@ exclude = [
     "/docs/",
     "/.github/",
 ]
+readme = "../readme.md"
+repository = "https://github.com/janhohenheim/avian_interpolation"
 
 [features]
 default = [
