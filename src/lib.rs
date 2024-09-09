@@ -54,7 +54,7 @@ pub struct AvianInterpolationPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<InterpolationMode>();
+        app.register_type::<(InterpolationMode, DisableTransformChanges)>();
         app.add_plugins((
             previous_transform::plugin,
             interpolate::plugin,
@@ -90,6 +90,11 @@ impl Plugin for AvianInterpolationPlugin {
 /// Do not add or remove this component manually.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
 pub enum InterpolationMode {
     /// Linear interpolation, i.e. the transform used is interpolated between the last two physics transforms.
     /// This is the default.
@@ -106,6 +111,11 @@ pub enum InterpolationMode {
 /// Note that if the entity's physics transform is changed directly, the [`Transform`] will not be updated.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
 pub struct DisableTransformChanges;
 
 /// The system set for the fixed update loop.

@@ -18,6 +18,11 @@ default = [
     "avian3d/parry-f32",
 ]
 3d = []
+serialize = [
+    "dep:serde",
+    "bevy/serialize",
+    "avian3d/serialize",
+]
 
 [lib]
 name = "avian_interpolation3d"
@@ -26,6 +31,7 @@ bench = false
 
 
 [dependencies]
+serde = { version = "1.0.210", optional = true}
 
 [dependencies.avian3d]
 git = "https://github.com/Jondolf/avian"
