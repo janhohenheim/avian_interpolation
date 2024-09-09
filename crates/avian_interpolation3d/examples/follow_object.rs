@@ -107,11 +107,10 @@ fn setup(
 fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
     let elapsed = time.elapsed_seconds();
     let max_offset = 1.3;
-    let speed = 0.6;
+    let oscillations_per_second = 0.6;
     for mut position in &mut moving {
-        let interpolant = elapsed * speed * TAU;
-        let new_position = |a| a * max_offset;
-        position.0.x = new_position(interpolant.sin());
+        let interpolant = elapsed * oscillations_per_second * TAU;
+        position.0.x = interpolant.sin() * max_offset;
     }
 }
 

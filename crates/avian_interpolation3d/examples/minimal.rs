@@ -37,7 +37,7 @@ fn setup(
         },
     ));
 
-    let box_shape = Cuboid::from_size(Vec3::splat(0.5));
+    let box_shape = Cuboid::from_size(Vec3::splat(1.0));
     commands.spawn((
         Name::new("Box"),
         PbrBundle {
@@ -54,12 +54,10 @@ fn setup(
 
 fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
     let elapsed = time.elapsed_seconds();
-    let max_offset = 1.6;
-    let speed = 0.4;
+    let max_offset = 1.7;
+    let oscillations_per_second = 0.6;
     for mut position in &mut moving {
-        let interpolant = elapsed * speed * TAU;
-        let new_position = |a| a * a * a * max_offset;
-        position.0.x = new_position(interpolant.sin());
-        position.0.y = new_position(interpolant.cos());
+        let interpolant = elapsed * oscillations_per_second * TAU;
+        position.0.x = interpolant.sin() * max_offset;
     }
 }
