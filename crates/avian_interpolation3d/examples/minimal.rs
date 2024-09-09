@@ -12,8 +12,8 @@ fn main() {
             DefaultPlugins,
             PhysicsPlugins::default(),
             AvianInterpolation3dPlugin::default(),
+            util::plugin,
         ))
-        .add_plugins(util::plugin)
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, move_box)
         .run();
@@ -58,8 +58,8 @@ fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
     let speed = 0.4;
     for mut position in &mut moving {
         let interpolant = elapsed * speed * TAU;
-        let angular_position = |a| a * a * a * max_offset;
-        position.0.x = angular_position(interpolant.sin());
-        position.0.y = angular_position(interpolant.cos());
+        let new_position = |a| a * a * a * max_offset;
+        position.0.x = new_position(interpolant.sin());
+        position.0.y = new_position(interpolant.cos());
     }
 }

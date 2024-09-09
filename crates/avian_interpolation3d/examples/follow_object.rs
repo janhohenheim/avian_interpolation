@@ -1,11 +1,8 @@
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, TAU};
 
 use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
-use bevy::{
-    app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 
 mod util;
 
@@ -18,16 +15,22 @@ fn main() {
             util::plugin,
         ))
         .add_systems(Startup, setup)
+        .add_systems(FixedUpdate, move_box)
         .add_systems(
-            RunFixedMainLoop,
-            rotate_camera.before(run_fixed_main_schedule),
+            Update,
+            (set_target_to_box, orbit_camera, follow_target).chain(),
         )
-        .add_systems(FixedUpdate, follow_camera)
         .run();
 }
 
 #[derive(Component)]
-struct FollowCamera;
+struct Moving;
+
+#[derive(Component, Default)]
+struct OrbitCamera {
+    target: Vec3,
+    distance: f32,
+}
 
 fn setup(
     mut commands: Commands,
@@ -36,12 +39,17 @@ fn setup(
 ) {
     let terrain_material = materials.add(Color::WHITE);
     let prop_material = materials.add(Color::from(tailwind::EMERALD_300));
+    let pillar_material = materials.add(Color::from(tailwind::RED_300));
 
     commands.spawn((
         Name::new("Player Camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(0.0, 1.0, 0.0),
             ..default()
+        },
+        OrbitCamera {
+            target: Vec3::ZERO,
+            distance: 2.0,
         },
     ));
 
@@ -69,25 +77,17 @@ fn setup(
         },
     ));
 
-    // These are just here so we have something to look at.
-    let terrain_transforms = [
-        Transform::default(),
-        Transform::from_xyz(7.5, 0.0, 0.0).with_rotation(Quat::from_rotation_z(FRAC_PI_2)),
-        Transform::from_xyz(-7.5, 0.0, 0.0).with_rotation(Quat::from_rotation_z(FRAC_PI_2)),
-        Transform::from_xyz(0.0, 0.0, 7.5).with_rotation(Quat::from_rotation_x(FRAC_PI_2)),
-        Transform::from_xyz(0.0, 0.0, -7.5).with_rotation(Quat::from_rotation_x(FRAC_PI_2)),
-    ];
-    for (i, transform) in terrain_transforms.iter().enumerate() {
-        commands.spawn((
-            Name::new(format!("Wall {}", i)),
-            PbrBundle {
-                mesh: ground_mesh.clone(),
-                material: terrain_material.clone(),
-                transform: *transform,
-                ..default()
-            },
-        ));
-    }
+    // Take a look at this reference pillar while running the example to see the effect of the interpolation.
+    let pillar_mesh = meshes.add(Cuboid::new(1.0, 5.0, 1.0));
+    commands.spawn((
+        Name::new("Pillar"),
+        PbrBundle {
+            mesh: pillar_mesh.clone(),
+            material: pillar_material.clone(),
+            transform: Transform::from_xyz(0.0, 2.5, -1.0),
+            ..default()
+        },
+    ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
@@ -95,18 +95,38 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
+            transform: Transform::from_xyz(0.0, 3.0, 0.0),
             ..default()
         },
         RigidBody::Static,
         Collider::from(box_shape),
-        FollowCamera,
+        Moving,
     ));
 }
 
-fn rotate_camera(
+fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
+    let elapsed = time.elapsed_seconds();
+    let max_offset = 1.3;
+    let speed = 0.6;
+    for mut position in &mut moving {
+        let interpolant = elapsed * speed * TAU;
+        let new_position = |a| a * max_offset;
+        position.0.x = new_position(interpolant.sin());
+    }
+}
+
+fn set_target_to_box(target: Query<&Transform, With<Moving>>, mut camera: Query<&mut OrbitCamera>) {
+    for mut orbit_camera in &mut camera {
+        for target_transform in &target {
+            orbit_camera.target = target_transform.translation;
+        }
+    }
+}
+
+fn orbit_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<Camera>>,
+    mut cameras: Query<&mut Transform, With<OrbitCamera>>,
 ) {
     for mut transform in &mut cameras {
         let dt = time.delta_seconds();
@@ -130,24 +150,9 @@ fn rotate_camera(
     }
 }
 
-fn follow_camera(
-    time: Res<Time>,
-    mut follow_camera: Query<(&mut Position, &mut Rotation), With<FollowCamera>>,
-    camera: Query<&Transform, With<Camera>>,
-) {
-    for camera in &camera {
-        for (mut position, mut rotation) in &mut follow_camera {
-            let dt = time.delta_seconds();
-            let decay_rate = f32::ln(1000.0);
-            let alpha = 1.0 - f32::exp(-decay_rate * dt);
-
-            let direction = camera.forward();
-            let distance = 2.0;
-            let target_pos = camera.translation + direction * distance;
-            position.0 = position.0.lerp(target_pos, alpha);
-
-            let target_rotation = camera.rotation;
-            rotation.0 = rotation.0.slerp(target_rotation, alpha);
-        }
+fn follow_target(mut cameras: Query<(&mut Transform, &OrbitCamera)>) {
+    for (mut transform, orbit) in &mut cameras {
+        let target = orbit.target - transform.forward() * orbit.distance;
+        transform.translation = target;
     }
 }
