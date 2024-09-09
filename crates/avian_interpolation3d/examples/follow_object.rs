@@ -137,13 +137,10 @@ fn orbit_camera(
             let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-            // Add yaw (global)
-            transform.rotate_y(delta_yaw);
-
-            // Add pitch (local)
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
             let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+            let yaw = yaw + delta_yaw;
             transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
     }
