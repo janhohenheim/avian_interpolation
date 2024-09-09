@@ -134,6 +134,10 @@ fn follow_camera(
 ) {
     for camera in &camera {
         for (mut position, mut rotation) in &mut follow_camera {
+            // Moving things to follow the camera will still need some additional interpolation to look smooth,
+            // as the camera will update more frequently than the physics engine.
+            // This means that the object will *always* lag slightly behind the camera.
+            // To make this less jarring, we can run some nice additional nonlinear interpolation.
             let dt = time.delta_seconds();
             let decay_rate = f32::ln(1000.0);
             let alpha = 1.0 - f32::exp(-decay_rate * dt);
