@@ -2,6 +2,9 @@
 
 A general-purpose [`Transform`] interpolation plugin for fixed timesteps in [Avian Physics](https://github.com/Jondolf/avian/) for the [Bevy engine](https://bevyengine.org/).
 
+<video src="https://github.com/janhohenheim/avian_interpolation/tree/main/docs/comparison.mp4" width="50%" />  
+*Note: The interpolation on the left is smoother in reality, blame the video recording software ;)*
+
 ## Usage
 
 Add the plugin to your project. Replace `3d` with `2d` if you are using Avian 2D.
