@@ -32,7 +32,13 @@ fn setup(
     commands.spawn((
         Name::new("Light"),
         PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
+            transform: Transform::from_xyz(0.0, 0.0, 3.0),
+            point_light: PointLight {
+                color: Color::WHITE,
+                intensity: 2_000_000.0,
+                shadows_enabled: true,
+                ..default()
+            },
             ..default()
         },
     ));

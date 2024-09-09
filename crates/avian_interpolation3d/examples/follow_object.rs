@@ -1,8 +1,8 @@
-use std::f32::consts::{FRAC_PI_2, TAU};
-
 use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
-use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
+use bevy::{
+    app::RunFixedMainLoop, color::palettes::tailwind, prelude::*, time::run_fixed_main_schedule,
+};
 
 mod util;
 
@@ -15,51 +15,45 @@ fn main() {
             util::plugin,
         ))
         .add_systems(Startup, setup)
-        .add_systems(FixedUpdate, move_box)
         .add_systems(
-            Update,
-            (set_target_to_box, orbit_camera, follow_target).chain(),
+            RunFixedMainLoop,
+            handle_input.before(run_fixed_main_schedule),
         )
+        .add_systems(FixedUpdate, clear_accumulated_input)
+        .add_systems(Update, follow_target.chain())
         .run();
 }
 
 #[derive(Component)]
 struct Moving;
 
-#[derive(Component, Default)]
-struct OrbitCamera {
-    target: Vec3,
-    distance: f32,
-}
+#[derive(Debug, Component, Default, Deref, DerefMut)]
+struct AccumulatedInput(Vec2);
 
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let terrain_material = materials.add(Color::WHITE);
     let prop_material = materials.add(Color::from(tailwind::EMERALD_300));
     let pillar_material = materials.add(Color::from(tailwind::RED_300));
 
     commands.spawn((
         Name::new("Player Camera"),
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 0.0),
+            // top-down view
+            transform: Transform::from_xyz(0.0, 8.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
-        },
-        OrbitCamera {
-            target: Vec3::ZERO,
-            distance: 2.0,
         },
     ));
 
     commands.spawn((
         Name::new("Light"),
         PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
+            transform: Transform::from_xyz(0.0, 8.0, 0.0),
             point_light: PointLight {
                 color: Color::WHITE,
-                intensity: 2_000_000.0,
+                intensity: 10_000_000.0,
                 shadows_enabled: true,
                 ..default()
             },
@@ -67,27 +61,26 @@ fn setup(
         },
     ));
 
-    let ground_mesh = meshes.add(Cuboid::new(15.0, 0.25, 15.0));
-    commands.spawn((
-        Name::new("Ground"),
-        PbrBundle {
-            mesh: ground_mesh.clone(),
-            material: terrain_material.clone(),
-            ..default()
-        },
-    ));
+    let tile_mesh = meshes.add(Cuboid::from_size(Vec3::splat(3.0)));
 
-    // Take a look at this reference pillar while running the example to see the effect of the interpolation.
-    let pillar_mesh = meshes.add(Cuboid::new(1.0, 5.0, 1.0));
-    commands.spawn((
-        Name::new("Pillar"),
-        PbrBundle {
-            mesh: pillar_mesh.clone(),
-            material: pillar_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.5, -1.0),
-            ..default()
-        },
-    ));
+    // Take a look at this reference background while running the example to see the effect of the interpolation.
+    let tile_repeat_per_quadrant = 10;
+    let tile_spacing = 3.5;
+    for i in -tile_repeat_per_quadrant..tile_repeat_per_quadrant {
+        for j in -tile_repeat_per_quadrant..tile_repeat_per_quadrant {
+            let x = i as f32 * tile_spacing;
+            let z = j as f32 * tile_spacing;
+            commands.spawn((
+                Name::new("Background Tile"),
+                PbrBundle {
+                    mesh: tile_mesh.clone(),
+                    material: pillar_material.clone(),
+                    transform: Transform::from_xyz(x, -1.5, z),
+                    ..default()
+                },
+            ));
+        }
+    }
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
@@ -95,60 +88,61 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 3.0, 0.0),
+            transform: Transform::from_xyz(0.0, 1.5, 0.0),
             ..default()
         },
-        RigidBody::Static,
+        RigidBody::Kinematic,
         Collider::from(box_shape),
+        AccumulatedInput::default(),
         Moving,
     ));
 }
 
-fn move_box(time: Res<Time>, mut moving: Query<&mut Position, With<Moving>>) {
-    let elapsed = time.elapsed_seconds();
-    let max_offset = 1.3;
-    let oscillations_per_second = 0.6;
-    for mut position in &mut moving {
-        let interpolant = elapsed * oscillations_per_second * TAU;
-        position.0.x = interpolant.sin() * max_offset;
-    }
-}
-
-fn set_target_to_box(target: Query<&Transform, With<Moving>>, mut camera: Query<&mut OrbitCamera>) {
-    for mut orbit_camera in &mut camera {
-        for target_transform in &target {
-            orbit_camera.target = target_transform.translation;
+/// Handle keyboard input and accumulate it in the `AccumulatedInput` component.
+/// There are many strategies for how to handle all the input that happened since the last fixed timestep.
+/// This is a very simple one: we just accumulate the input and average it out by normalizing it.
+fn handle_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(&mut AccumulatedInput, &mut LinearVelocity)>,
+) {
+    const SPEED: f32 = 12.0;
+    for (mut input, mut velocity) in query.iter_mut() {
+        if keyboard_input.pressed(KeyCode::KeyW) {
+            input.y += 1.0;
         }
+        if keyboard_input.pressed(KeyCode::KeyS) {
+            input.y -= 1.0;
+        }
+        if keyboard_input.pressed(KeyCode::KeyA) {
+            input.x -= 1.0;
+        }
+        if keyboard_input.pressed(KeyCode::KeyD) {
+            input.x += 1.0;
+        }
+
+        // Need to normalize and scale because otherwise
+        // diagonal movement would be faster than horizontal or vertical movement.
+        // This effectively averages the accumulated input.
+        velocity.0 = -input.extend(0.0).yzx().normalize_or_zero() * SPEED;
     }
 }
 
-fn orbit_camera(
-    time: Res<Time>,
-    mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<OrbitCamera>>,
+fn clear_accumulated_input(mut inputs: Query<&mut AccumulatedInput, With<Moving>>) {
+    for mut input in &mut inputs {
+        // Reset the input accumulator, as we are currently consuming all input that happened since the last fixed timestep.
+        input.0 = Vec2::ZERO;
+    }
+}
+
+fn follow_target(
+    mut cameras: Query<&mut Transform, With<Camera>>,
+    target: Query<&Transform, (With<Moving>, Without<Camera>)>,
 ) {
     for mut transform in &mut cameras {
-        let dt = time.delta_seconds();
-        // The factors are just arbitrary mouse sensitivity values.
-        // It's often nicer to have a faster horizontal sensitivity than vertical.
-        let mouse_sensitivity = Vec2::new(0.12, 0.10);
-
-        for motion in mouse_motion.read() {
-            let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
-            let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
-
-            const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
-            let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            let yaw = yaw + delta_yaw;
-            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+        for target_transform in &target {
+            let target = target_transform.translation;
+            transform.translation.x = target.x;
+            transform.translation.z = target.z;
         }
-    }
-}
-
-fn follow_target(mut cameras: Query<(&mut Transform, &OrbitCamera)>) {
-    for (mut transform, orbit) in &mut cameras {
-        let target = orbit.target - transform.forward() * orbit.distance;
-        transform.translation = target;
     }
 }
