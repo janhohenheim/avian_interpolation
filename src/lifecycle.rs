@@ -16,17 +16,19 @@ pub(super) fn plugin(app: &mut App) {
 fn insert_previous_position(
     trigger: Trigger<OnAdd, Position>,
     mut commands: Commands,
-    q_position: Query<&Position, Without<DisableTransformChanges>>,
+    q_position: Query<(&Position, Has<InterpolationMode>), Without<DisableTransformChanges>>,
 ) {
     let entity = trigger.entity();
-    let Ok(position) = q_position.get(entity) else {
+    let Ok((position, has_interpolation_mode)) = q_position.get(entity) else {
         return;
     };
-    commands.entity(entity).insert((
-        PreviousPosition::from(*position),
+    commands
+        .entity(entity)
+        .insert((PreviousPosition::from(*position),));
+    if !has_interpolation_mode {
         // We assume that having `Rotation` or `Collider` without `Position` would be malformed, so we insert this here.
-        InterpolationMode::default(),
-    ));
+        commands.entity(entity).insert(InterpolationMode::default());
+    }
 }
 
 fn insert_previous_rotation(
@@ -65,18 +67,27 @@ fn disable_interpolation(trigger: Trigger<OnAdd, DisableTransformChanges>, mut c
 fn re_enable_interpolation(
     trigger: Trigger<OnRemove, DisableTransformChanges>,
     mut commands: Commands,
-    q_physicsal_transform: Query<(&Position, &Rotation, Option<&Collider>)>,
+    q_physicsal_transform: Query<(
+        &Position,
+        &Rotation,
+        Option<&Collider>,
+        Has<InterpolationMode>,
+    )>,
 ) {
     let entity = trigger.entity();
-    let Ok((position, rotation, collider)) = q_physicsal_transform.get(entity) else {
+    let Ok((position, rotation, maybe_collider, has_interpolation_mode)) =
+        q_physicsal_transform.get(entity)
+    else {
         return;
     };
     commands.entity(entity).insert((
         PreviousPosition::from(*position),
         PreviousRotation::from(*rotation),
-        InterpolationMode::default(),
     ));
-    if let Some(collider) = collider {
+    if !has_interpolation_mode {
+        commands.entity(entity).insert(InterpolationMode::default());
+    }
+    if let Some(collider) = maybe_collider {
         commands
             .entity(entity)
             .insert(PreviousScale::from(collider));
