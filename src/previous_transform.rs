@@ -48,7 +48,7 @@ fn cache_previous_transform(
             Option<(Ref<Collider>, &mut PreviousScale)>,
         ),
         (
-            Without<DisableInterpolation>,
+            Without<DisableTransformChanges>,
             Or<(Changed<Position>, Changed<Rotation>, Changed<Collider>)>,
         ),
     >,
@@ -57,10 +57,10 @@ fn cache_previous_transform(
         &mut q_physics
     {
         if position.is_changed() {
-            *previous_position = position.clone().into();
+            *previous_position = (*position).into();
         }
         if rotation.is_changed() {
-            *previous_rotation = rotation.clone().into();
+            *previous_rotation = (*rotation).into();
         }
         if let Some((collider, mut previous_scale)) = maybe_scale {
             if collider.is_changed() {

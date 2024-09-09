@@ -7,7 +7,10 @@ compile_error!("Cannot enable both 2d and 3d features at the same time.");
 #[cfg(all(not(feature = "2d"), not(feature = "3d")))]
 compile_error!("Cannot run without either 2d or 3d feature.");
 
+// This allows me to reference `avian` components in the docs without the annoying `cfg_attr`.
+#[allow(unused_imports)]
 use avian::prelude::*;
+
 #[cfg(feature = "2d")]
 use avian2d as avian;
 #[cfg(feature = "3d")]

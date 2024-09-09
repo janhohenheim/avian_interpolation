@@ -23,7 +23,7 @@ fn interpolate_transform(
             Option<(&Collider, &PreviousScale)>,
             &InterpolationMode,
         ),
-        Without<DisableInterpolation>,
+        Without<DisableTransformChanges>,
     >,
     q_global_transform: Query<&GlobalTransform>,
 ) {
