@@ -20,7 +20,7 @@ pub mod prelude {
     pub use crate::AvianInterpolation2dPlugin;
     #[cfg(feature = "3d")]
     pub use crate::AvianInterpolation3dPlugin;
-    pub use crate::NonInterpolated;
+    pub use crate::{DisableTransformChanges, InterpolationMode};
     pub(crate) use crate::{FixedAvianInterpolationSystem, VariableAvianInterpolationSystem};
     pub(crate) use bevy::prelude::*;
 }
@@ -48,7 +48,7 @@ type AvianInterpolationPlugin = AvianInterpolation3dPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<NonInterpolated>();
+        app.register_type::<InterpolationMode>();
         app.add_plugins((
             previous_transform::plugin,
             interpolate::plugin,
@@ -80,7 +80,15 @@ impl Plugin for AvianInterpolationPlugin {
 
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
-pub struct NonInterpolated;
+pub enum InterpolationMode {
+    #[default]
+    Linear,
+    None,
+}
+
+#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
+#[reflect(Component)]
+pub struct DisableTransformChanges;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 #[non_exhaustive]

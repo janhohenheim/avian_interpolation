@@ -48,7 +48,7 @@ fn cache_previous_transform(
             Option<(Ref<Collider>, &mut PreviousScale)>,
         ),
         (
-            Without<NonInterpolated>,
+            Without<DisableTransformChanges>,
             Or<(Changed<Position>, Changed<Rotation>, Changed<Collider>)>,
         ),
     >,

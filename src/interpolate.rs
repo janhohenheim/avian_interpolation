@@ -20,17 +20,28 @@ fn interpolate_transform(
             &PreviousPosition,
             &PreviousRotation,
             Option<(&Collider, &PreviousScale)>,
+            &InterpolationMode,
         ),
-        Without<NonInterpolated>,
+        Without<DisableTransformChanges>,
     >,
 ) {
     // The overstep fraction is a value between 0 and 1 that tells us how far we are between two fixed timesteps.
     let alpha = fixed_time.overstep_fraction();
 
-    for (mut transform, position, rotation, previous_position, previous_rotation, maybe_scale) in
-        &mut q_interpolant
+    for (
+        mut transform,
+        position,
+        rotation,
+        previous_position,
+        previous_rotation,
+        maybe_scale,
+        interpolation_mode,
+    ) in &mut q_interpolant
     {
-        let translation = previous_position.lerp(position.0, alpha);
+        let translation = match interpolation_mode {
+            InterpolationMode::Linear => previous_position.lerp(position.0, alpha),
+            InterpolationMode::None => position.0,
+        };
         #[cfg(feature = "2d")]
         let translation = translation.extend(0.);
         transform.translation = translation;
@@ -46,10 +57,17 @@ fn interpolate_transform(
             }
         };
 
-        transform.rotation = previous_rotation.lerp(rotation, alpha);
+        let rotation = match interpolation_mode {
+            InterpolationMode::Linear => previous_rotation.lerp(rotation, alpha),
+            InterpolationMode::None => rotation,
+        };
+        transform.rotation = rotation;
 
         if let Some((collider, previous_scale)) = maybe_scale {
-            let scale = previous_scale.lerp(collider.scale(), alpha);
+            let scale = match interpolation_mode {
+                InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
+                InterpolationMode::None => collider.scale(),
+            };
             #[cfg(feature = "2d")]
             let scale = scale.extend(0.);
             transform.scale = scale;
