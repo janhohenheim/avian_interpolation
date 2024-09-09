@@ -2,7 +2,7 @@
 
 A general-purpose [`Transform`] interpolation plugin for fixed timesteps in [Avian Physics](https://github.com/Jondolf/avian/) for the [Bevy engine](https://bevyengine.org/).
 
-<video src="https://github.com/janhohenheim/avian_interpolation/raw/main/docs/comparison.mp4" width="50%">
+<video src="https://github.com/user-attachments/assets/919c4809-0502-4b37-b789-261b7e9c7c30" width="50%">
 A video showing the difference between enabled and disabled interpolation.
 </video>
 *Note: The interpolation on the left is smoother in reality, blame the video recording software ;)*
