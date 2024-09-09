@@ -82,7 +82,7 @@ fn interpolate_transform(
         });
         let new_transform = if let Some(parent) = maybe_parent {
             if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
-                parent_global_transform.reparented_to(parent_global_transform)
+                global_transform.reparented_to(parent_global_transform)
             } else {
                 global_transform.compute_transform()
             }
