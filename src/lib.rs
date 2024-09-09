@@ -1,5 +1,5 @@
 #![allow(clippy::too_many_arguments, clippy::type_complexity, unexpected_cfgs)]
-//#![warn(missing_docs)]
+#![warn(missing_docs)]
 #![doc = include_str!("../readme.md")]
 
 #[cfg(all(feature = "2d", feature = "3d"))]
@@ -14,14 +14,11 @@ use avian2d as avian;
 use avian3d as avian;
 use bevy::{app::RunFixedMainLoop, prelude::*, time::run_fixed_main_schedule};
 
+/// Everything you need to interpolate transforms with Avian.
 pub mod prelude {
     pub(crate) use crate::avian::{self, prelude::*};
-    #[cfg(feature = "2d")]
-    pub use crate::AvianInterpolation2dPlugin;
-    #[cfg(feature = "3d")]
-    pub use crate::AvianInterpolation3dPlugin;
-    pub use crate::{DisableTransformChanges, InterpolationMode};
-    pub(crate) use crate::{FixedAvianInterpolationSystem, VariableAvianInterpolationSystem};
+    pub(crate) use crate::{AvianInterpolationFixedSystem, AvianInterpolationVariableSystem};
+    pub use crate::{AvianInterpolationPlugin, DisableTransformChanges, InterpolationMode};
     pub(crate) use bevy::prelude::*;
 }
 
@@ -30,21 +27,34 @@ mod lifecycle;
 mod previous_transform;
 mod transform_sync;
 
-#[cfg(feature = "2d")]
+/// The plugin for [`Transform`] interpolation with Avian. Simply add it to your app after [`PhysicsPlugins`]:
+///
+/// ```rust
+/// use bevy::prelude::*;
+#[cfg_attr(feature = "2d", doc = "use avian2d::prelude::*;")]
+#[cfg_attr(feature = "3d", doc = "use avian3d::prelude::*;")]
+#[cfg_attr(feature = "2d", doc = "use avian_interpolation2d::prelude::*;")]
+#[cfg_attr(feature = "3d", doc = "use avian_interpolation3d::prelude::*;")]
+/// App::new()
+///     .add_plugins((
+///         DefaultPlugins,
+///         PhysicsPlugins::default(),
+#[cfg_attr(
+    feature = "2d",
+    doc = "         AvianInterpolation2dPlugin::default(),"
+)]
+#[cfg_attr(
+    feature = "3d",
+    doc = "         AvianInterpolation3dPlugin::default(),"
+)]
+///     ));
+/// ```
+///
+/// That's already it! Now, all your rigid bodies and colliders will be interpolated.
+/// The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
 #[derive(Default)]
 #[non_exhaustive]
-pub struct AvianInterpolation2dPlugin;
-
-#[cfg(feature = "3d")]
-#[derive(Default)]
-#[non_exhaustive]
-pub struct AvianInterpolation3dPlugin;
-
-#[cfg(feature = "2d")]
-type AvianInterpolationPlugin = AvianInterpolation2dPlugin;
-
-#[cfg(feature = "3d")]
-type AvianInterpolationPlugin = AvianInterpolation3dPlugin;
+pub struct AvianInterpolationPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
@@ -58,19 +68,18 @@ impl Plugin for AvianInterpolationPlugin {
         app.configure_sets(
             FixedPreUpdate,
             (
-                FixedAvianInterpolationSystem::First,
-                FixedAvianInterpolationSystem::CachePreviousPhysicsTransform,
-                FixedAvianInterpolationSystem::Last,
+                AvianInterpolationFixedSystem::First,
+                AvianInterpolationFixedSystem::CachePreviousPhysicsTransform,
+                AvianInterpolationFixedSystem::Last,
             )
-                .in_set(PhysicsStepSet::First)
                 .chain(),
         );
         app.configure_sets(
             RunFixedMainLoop,
             (
-                VariableAvianInterpolationSystem::First,
-                VariableAvianInterpolationSystem::Interpolate,
-                VariableAvianInterpolationSystem::Last,
+                AvianInterpolationVariableSystem::First,
+                AvianInterpolationVariableSystem::Interpolate,
+                AvianInterpolationVariableSystem::Last,
             )
                 .after(run_fixed_main_schedule)
                 .chain(),
@@ -78,30 +87,56 @@ impl Plugin for AvianInterpolationPlugin {
     }
 }
 
+/// The interpolation mode to use.
+/// Change this value to set the interpolation mode for a rigid body or a collider.
+///
+/// This is added and removed to rigid bodies and colliders for you.
+/// Do not add or remove this component manually.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 pub enum InterpolationMode {
+    /// Linear interpolation, i.e. the transform used is interpolated between the last two physics transforms.
+    /// This is the default.
     #[default]
     Linear,
+    /// No interpolation, i.e. the transform used is the last available physics transform.
     None,
 }
 
+/// Disables transform changes for a rigid body or a collider.
+/// Add this to entities that you know will never move for a little performance boost.
+/// You can also add it to an entity to implement a different kind of smoothing strategy manually, e.g. extrapolation.
+///
+/// Note that if the entity's physics transform is changed directly, the [`Transform`] will not be updated.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 pub struct DisableTransformChanges;
 
+/// The system set for the fixed update loop.
+/// This is scheduled in [`FixedPreUpdate`].
+/// This means that it is run *before* the user code in [`FixedUpdate`] and the physics update in [`FixedPostUpdate`].
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 #[non_exhaustive]
-pub enum FixedAvianInterpolationSystem {
+pub enum AvianInterpolationFixedSystem {
+    /// The first system in the set. This is empty by default.
     First,
+    /// Cache the previous physics transform.
     CachePreviousPhysicsTransform,
+    /// The last system in the set. This is empty by default.
     Last,
 }
 
+/// The system set for the variable update loop.
+/// This is scheduled in [`RunFixedMainLoop`] and runs after [`run_fixed_main_schedule`].
+/// This means that it is every frame, and if there were any fixed updates this frame,
+/// it is run after the last fixed update. This also means that this is run after all physics updates.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 #[non_exhaustive]
-pub enum VariableAvianInterpolationSystem {
+pub enum AvianInterpolationVariableSystem {
+    /// The first system in the set. This is empty by default.
     First,
+    /// Interpolate the transforms.
     Interpolate,
+    /// The last system in the set. This is empty by default.
     Last,
 }

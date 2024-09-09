@@ -11,7 +11,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            AvianInterpolation3dPlugin::default(),
+            AvianInterpolationPlugin::default(),
             util::plugin,
         ))
         .add_systems(Startup, setup)

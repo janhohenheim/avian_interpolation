@@ -7,7 +7,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         FixedPreUpdate,
         cache_previous_transform
-            .in_set(FixedAvianInterpolationSystem::CachePreviousPhysicsTransform),
+            .in_set(AvianInterpolationFixedSystem::CachePreviousPhysicsTransform),
     );
 }
 
@@ -48,7 +48,7 @@ fn cache_previous_transform(
             Option<(Ref<Collider>, &mut PreviousScale)>,
         ),
         (
-            Without<DisableTransformChanges>,
+            Without<DisableInterpolation>,
             Or<(Changed<Position>, Changed<Rotation>, Changed<Collider>)>,
         ),
     >,

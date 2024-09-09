@@ -6,7 +6,7 @@ use crate::previous_transform::{PreviousPosition, PreviousRotation, PreviousScal
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         RunFixedMainLoop,
-        interpolate_transform.in_set(VariableAvianInterpolationSystem::Interpolate),
+        interpolate_transform.in_set(AvianInterpolationVariableSystem::Interpolate),
     );
 }
 
@@ -23,7 +23,7 @@ fn interpolate_transform(
             Option<(&Collider, &PreviousScale)>,
             &InterpolationMode,
         ),
-        Without<DisableTransformChanges>,
+        Without<DisableInterpolation>,
     >,
     q_global_transform: Query<&GlobalTransform>,
 ) {
