@@ -18,6 +18,11 @@ default = [
     "avian2d/parry-f32",
 ]
 2d = []
+serialize = [
+    "dep:serde",
+    "bevy/serialize",
+    "avian2d/serialize",
+]
 
 
 [lib]
@@ -26,6 +31,7 @@ path = "../../src/lib.rs"
 bench = false
 
 [dependencies]
+serde = { version = "1.0.210", optional = true}
 
 [dependencies.avian2d]
 git = "https://github.com/Jondolf/avian"

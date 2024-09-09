@@ -198,6 +198,9 @@ name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "as-raw-xcb-connection"
@@ -305,6 +308,7 @@ dependencies = [
  "nalgebra",
  "parry2d",
  "parry2d-f64",
+ "serde",
 ]
 
 [[package]]
@@ -323,6 +327,7 @@ dependencies = [
  "nalgebra",
  "parry3d",
  "parry3d-f64",
+ "serde",
 ]
 
 [[package]]
@@ -342,6 +347,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "serde",
 ]
 
 [[package]]
@@ -350,6 +356,7 @@ version = "0.1.0"
 dependencies = [
  "avian3d",
  "bevy",
+ "serde",
 ]
 
 [[package]]
@@ -523,6 +530,7 @@ dependencies = [
  "bevy_reflect",
  "bevy_tasks",
  "bevy_utils",
+ "serde",
  "uuid",
 ]
 
@@ -736,6 +744,7 @@ dependencies = [
  "bevy_math",
  "bevy_reflect",
  "bevy_utils",
+ "serde",
  "smol_str",
  "thiserror",
 ]
@@ -1076,6 +1085,7 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "crossbeam-channel",
+ "serde",
  "thiserror",
 ]
 
@@ -1090,6 +1100,7 @@ dependencies = [
  "bevy_hierarchy",
  "bevy_math",
  "bevy_reflect",
+ "serde",
  "thiserror",
 ]
 
@@ -1118,6 +1129,7 @@ dependencies = [
  "bevy_window",
  "bytemuck",
  "nonmax",
+ "serde",
  "smallvec",
  "taffy",
  "thiserror",
@@ -1162,6 +1174,7 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "raw-window-handle",
+ "serde",
  "smol_str",
 ]
 
@@ -1188,6 +1201,7 @@ dependencies = [
  "cfg-if",
  "crossbeam-channel",
  "raw-window-handle",
+ "serde",
  "wasm-bindgen",
  "web-sys",
  "winit",
@@ -2582,6 +2596,7 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
+ "serde",
  "simba",
  "typenum",
 ]
@@ -2704,6 +2719,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
 dependencies = [
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -3087,6 +3103,7 @@ dependencies = [
  "num-traits",
  "rayon",
  "rustc-hash",
+ "serde",
  "simba",
  "slab",
  "smallvec",
@@ -3110,6 +3127,7 @@ dependencies = [
  "num-traits",
  "rayon",
  "rustc-hash",
+ "serde",
  "simba",
  "slab",
  "smallvec",
@@ -3133,6 +3151,7 @@ dependencies = [
  "num-traits",
  "rayon",
  "rustc-hash",
+ "serde",
  "simba",
  "slab",
  "smallvec",
@@ -3156,6 +3175,7 @@ dependencies = [
  "num-traits",
  "rayon",
  "rustc-hash",
+ "serde",
  "simba",
  "slab",
  "smallvec",
@@ -3660,6 +3680,9 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "smol_str"
