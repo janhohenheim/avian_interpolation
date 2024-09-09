@@ -15,7 +15,7 @@ fn main() {
             DefaultPlugins,
             PhysicsPlugins::default(),
             AvianInterpolationPlugin::default(),
-            util::plugin,
+            util::plugin(util::Example::RotateCamera),
         ))
         .add_systems(Startup, setup)
         .add_systems(

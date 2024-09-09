@@ -16,7 +16,7 @@ fn main() {
             DefaultPlugins,
             PhysicsPlugins::default().with_length_unit(200.0),
             AvianInterpolationPlugin::default(),
-            util::plugin,
+            util::plugin(util::Example::Moving),
         ))
         .add_systems(Startup, setup)
         .add_systems(
@@ -52,7 +52,8 @@ fn setup(
                 MaterialMesh2dBundle {
                     mesh: tile_mesh.clone(),
                     material: pillar_material.clone(),
-                    transform: Transform::from_xyz(x, y, 0.0),
+                    // draw this behind the box
+                    transform: Transform::from_xyz(x, y, -1.0),
                     ..default()
                 },
             ));
@@ -65,7 +66,6 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: meshes.add(box_shape).into(),
             material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 0.0, 1.0),
             ..default()
         },
         RigidBody::Kinematic,

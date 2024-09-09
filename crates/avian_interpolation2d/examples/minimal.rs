@@ -12,7 +12,7 @@ fn main() {
             DefaultPlugins,
             PhysicsPlugins::default().with_length_unit(200.0),
             AvianInterpolationPlugin::default(),
-            util::plugin,
+            util::plugin(util::Example::Generic),
         ))
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, move_box)
