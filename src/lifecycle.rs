@@ -51,16 +51,10 @@ fn disable_interpolation(trigger: Trigger<OnAdd, DisableTransformChanges>, mut c
 fn re_enable_interpolation(
     trigger: Trigger<OnRemove, DisableTransformChanges>,
     mut commands: Commands,
-    q_physicsal_transform: Query<(
-        &Position,
-        &Rotation,
-        Has<InterpolationMode>,
-    )>,
+    q_physicsal_transform: Query<(&Position, &Rotation, Has<InterpolationMode>)>,
 ) {
     let entity = trigger.entity();
-    let Ok((position, rotation, has_interpolation_mode)) =
-        q_physicsal_transform.get(entity)
-    else {
+    let Ok((position, rotation, has_interpolation_mode)) = q_physicsal_transform.get(entity) else {
         return;
     };
     commands.entity(entity).insert((
@@ -79,9 +73,7 @@ fn remove_previous_transform(trigger: Trigger<OnRemove, Position>, mut commands:
 }
 
 fn remove_interpolation_components(entity: Entity, world: &mut World) {
-    world.entity_mut(entity).remove::<(
-        PreviousPosition,
-        PreviousRotation,
-        InterpolationMode,
-    )>();
+    world
+        .entity_mut(entity)
+        .remove::<(PreviousPosition, PreviousRotation, InterpolationMode)>();
 }
