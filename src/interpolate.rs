@@ -1,7 +1,7 @@
 use bevy::app::RunFixedMainLoop;
 
 use crate::prelude::*;
-use crate::previous_transform::{PreviousPosition, PreviousRotation, PreviousScale};
+use crate::previous_transform::{PreviousPosition, PreviousRotation};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -20,7 +20,6 @@ fn interpolate_transform(
             &Rotation,
             &PreviousPosition,
             &PreviousRotation,
-            Option<(&Collider, &PreviousScale)>,
             &InterpolationMode,
         ),
         Without<DisableTransformChanges>,
@@ -37,7 +36,6 @@ fn interpolate_transform(
         rotation,
         previous_position,
         previous_rotation,
-        maybe_scale,
         interpolation_mode,
     ) in &mut q_interpolant
     {
@@ -64,21 +62,10 @@ fn interpolate_transform(
             InterpolationMode::None => rotation,
         };
 
-        let scale = if let Some((collider, previous_scale)) = maybe_scale {
-            let scale = match interpolation_mode {
-                InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
-                InterpolationMode::None => collider.scale(),
-            };
-            #[cfg(feature = "2d")]
-            let scale = scale.extend(1.);
-            scale
-        } else {
-            Vec3::splat(1.0)
-        };
         let global_transform = GlobalTransform::from(Transform {
             translation,
             rotation,
-            scale,
+            ..default()
         });
         let new_transform = if let Some(parent) = maybe_parent {
             if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {

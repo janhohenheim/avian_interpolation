@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::prelude::*;
 use avian::math::{Quaternion, Vector};
 
@@ -29,15 +27,6 @@ impl From<Rotation> for PreviousRotation {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Component, Deref, DerefMut)]
-pub(crate) struct PreviousScale(pub Vector);
-
-impl<T: Borrow<Collider>> From<T> for PreviousScale {
-    fn from(value: T) -> Self {
-        PreviousScale(value.borrow().scale())
-    }
-}
-
 fn cache_previous_transform(
     mut q_physics: Query<
         (
@@ -45,7 +34,6 @@ fn cache_previous_transform(
             Ref<Rotation>,
             &mut PreviousPosition,
             &mut PreviousRotation,
-            Option<(Ref<Collider>, &mut PreviousScale)>,
         ),
         (
             Without<DisableTransformChanges>,
@@ -53,19 +41,12 @@ fn cache_previous_transform(
         ),
     >,
 ) {
-    for (position, rotation, mut previous_position, mut previous_rotation, maybe_scale) in
-        &mut q_physics
-    {
+    for (position, rotation, mut previous_position, mut previous_rotation) in &mut q_physics {
         if position.is_changed() {
             *previous_position = (*position).into();
         }
         if rotation.is_changed() {
             *previous_rotation = (*rotation).into();
-        }
-        if let Some((collider, mut previous_scale)) = maybe_scale {
-            if collider.is_changed() {
-                *previous_scale = collider.as_ref().into();
-            }
         }
     }
 }

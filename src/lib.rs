@@ -47,7 +47,7 @@ mod transform_sync;
 /// ```
 ///
 /// That's already it! Now, all your rigid bodies and colliders will be interpolated.
-/// The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
+/// The interpolation source will be their [`Position`] and [`Rotation`].
 #[derive(Default)]
 #[non_exhaustive]
 pub struct AvianInterpolationPlugin;

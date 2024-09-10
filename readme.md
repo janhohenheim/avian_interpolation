@@ -37,7 +37,7 @@ App::new()
 
 And that's it! The [`Transform`] component of all moving objects will now be interpolated after the physics simulation.
 This means that the new [`Transform`] will be available in [`Update`] for rendering, spatial sound, moving your camera, etc.
-The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
+The interpolation source will be their [`Position`] and [`Rotation`].
 
 Do you have any objects that should not be interpolated? Add [`DisableTransformChanges`] to them:
 
@@ -60,6 +60,7 @@ commands.spawn((
     Depending on your point of view, this is actually a feature ;)
 - Assumes [`PhysicsSchedule`] is left at its default value of [`FixedPostUpdate`].
 - Assumes that all entities with [`Position`] will also have [`Rotation`] and vice versa.
+- Due to limitation in Avian, the interpolation currently does not work with scales.
 
 ## Differences to [`bevy_transform_interpolation`]
 
@@ -88,4 +89,3 @@ commands.spawn((
 [`InterpolationMode::None`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L99
 [`PhysicsSchedule`]: https://docs.rs/avian3d/latest/avian3d/schedule/struct.PhysicsSchedule.html
 [`FixedPostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.FixedPostUpdate.html
-[`Collider::scale()`]: https://docs.rs/avian3d/latest/avian3d/collision/collider/struct.Collider.html#method.scale
