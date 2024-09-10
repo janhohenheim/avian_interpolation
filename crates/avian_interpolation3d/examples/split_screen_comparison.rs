@@ -202,7 +202,7 @@ fn rotate_camera(
             let mouse_sensitivity = Vec2::new(0.003, 0.002);
 
             let delta_yaw = -motion.delta.x * mouse_sensitivity.x;
-            let delta_pitch = -motion.delta.y *  mouse_sensitivity.y;
+            let delta_pitch = -motion.delta.y * mouse_sensitivity.y;
 
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
             let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
