@@ -107,10 +107,13 @@ fn remove_previous_scale(trigger: Trigger<OnRemove, Collider>, mut commands: Com
 }
 
 fn remove_interpolation_components(entity: Entity, world: &mut World) {
-    world.entity_mut(entity).remove::<(
-        PreviousPosition,
-        PreviousRotation,
-        PreviousScale,
-        InterpolationMode,
-    )>();
+    // We need to check if the entity still exists, as this may have been called on a despawning entity.
+    if let Some(mut entity_mut) = world.get_entity_mut(entity) {
+        entity_mut.remove::<(
+            PreviousPosition,
+            PreviousRotation,
+            PreviousScale,
+            InterpolationMode,
+        )>();
+    }
 }
