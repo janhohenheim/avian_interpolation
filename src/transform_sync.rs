@@ -19,6 +19,5 @@ fn disable_transform_sync(sync_config: Option<ResMut<SyncConfig>>) {
     *sync_config = SyncConfig {
         position_to_transform: false,
         transform_to_position: false,
-        transform_to_collider_scale: true,
     };
 }
