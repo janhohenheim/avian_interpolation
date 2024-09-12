@@ -46,8 +46,8 @@ mod transform_sync;
 ///     ));
 /// ```
 ///
-/// That's already it! Now, all your rigid bodies and colliders will be interpolated.
-/// The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
+/// That's already it! Now, all your rigid bodies will be interpolated.
+/// The interpolation source will be their [`Position`] and [`Rotation`].
 #[derive(Default)]
 #[non_exhaustive]
 pub struct AvianInterpolationPlugin;
@@ -84,10 +84,10 @@ impl Plugin for AvianInterpolationPlugin {
 }
 
 /// The interpolation mode to use.
-/// Change this value to set the interpolation mode for a rigid body or a collider.
+/// Change this value to set the interpolation mode for a rigid body.
 ///
-/// This is added and removed to rigid bodies and colliders for you.
-/// Do not add or remove this component manually.
+/// This is added to rigid bodies for you, 
+/// but you can also manually initialize it yourself to override the interpolation mode.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 #[cfg_attr(
@@ -104,7 +104,7 @@ pub enum InterpolationMode {
     None,
 }
 
-/// Disables transform changes for a rigid body or a collider.
+/// Disables transform changes for a rigid body.
 /// Add this to entities that you know will never move for a little performance boost.
 /// Note that [`RigidBody::Static`] entities are never interpolated, so adding this to them is pointless.
 /// You can also add it to an entity to implement a different kind of smoothing strategy manually, e.g. extrapolation.

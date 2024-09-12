@@ -37,20 +37,21 @@ App::new()
 
 And that's it! The [`Transform`] component of all moving objects will now be interpolated after the physics simulation.
 This means that the new [`Transform`] will be available in [`Update`] for rendering, spatial sound, moving your camera, etc.
-The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
+The interpolation source will be their [`Position`] and [`Rotation`].
 
 ## Limitations
 
 - Disables transform syncing, i.e. Avian's feature of translating [`Transform`] to its internal representation and vice versa.
   - If you still want to have your [`Transform`] changed as if you had transform syncing enabled, set [`InterpolationMode::None`] for that entity.
     This will use the last available physics transform as the interpolation source instead.
-  - In practice, this means that you can *not* directly modify the [`Transform`] component of any rigid body or collider anymore.
+  - In practice, this means that you can *not* directly modify the [`Transform`] component of any rigid body anymore.
     Use [`Position`] and [`Rotation`] instead. [`Transform`] is a purely aesthetic component and should not be modified for physics.
     Depending on your point of view, this is actually a feature ;)
 - Assumes [`PhysicsSchedule`] is left at its default value of [`FixedPostUpdate`].
 - Assumes that all entities with [`Position`] will also have [`Rotation`] and vice versa.
-- Assumes [`RigidBody`]s will not form hierarchies.
+- Assumes [`RigidBody`]s will not form hierarchies with other [`RigidBody`]s.
 - Assumes [`Rigidbody::Static`] objects will not move.
+- Will not interpolate scales for you
 
 ## Differences to [`bevy_transform_interpolation`]
 
@@ -80,4 +81,3 @@ The interpolation source will be their [`Position`], [`Rotation`], and, if avail
 [`InterpolationMode::None`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L99
 [`PhysicsSchedule`]: https://docs.rs/avian3d/latest/avian3d/schedule/struct.PhysicsSchedule.html
 [`FixedPostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.FixedPostUpdate.html
-[`Collider::scale()`]: https://docs.rs/avian3d/latest/avian3d/collision/collider/struct.Collider.html#method.scale

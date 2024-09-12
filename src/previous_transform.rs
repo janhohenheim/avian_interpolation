@@ -37,7 +37,7 @@ fn cache_previous_transform(
         ),
         (
             Without<DisableTransformChanges>,
-            Or<(Changed<Position>, Changed<Rotation>, Changed<Collider>)>,
+            Or<(Changed<Position>, Changed<Rotation>)>,
         ),
     >,
 ) {
