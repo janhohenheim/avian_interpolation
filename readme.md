@@ -7,6 +7,27 @@ A video showing the difference between enabled and disabled interpolation.
 </video>
 *Note: The interpolation on the left is smoother in reality, blame the video recording software ;)*
 
+## Why do I need interpolation?
+
+Ever had your character jitter around when making the camera follow them?
+This plugin may be for you!
+
+For a full explanation, see Bevy's [`physics_in_fixed_timestep`] example.
+The short version is that on fast enough machines, your game will update its
+rendered frame more often than it will updste its physics simulation.
+This means that sometimes e.g. your camera will be moved around without any physics
+objects being updated this frame. This will lead to the physics object's movement
+looking chppy and jittery, like on the right window in the video above.
+
+There are a number of ways in which we can deal with this, and the easiest is
+interpolation. By letting the visuals of the physics objects intentionally lag 
+a tiiiiiny bit behind, we can smoothly interpolate between the last two values, leading
+to smooth and correct visuals, at the cost of the rendered objects
+being behind the underlying physics objects by about 15 ms. For most games, that is not
+noticeable at all and will just "magically" make the game more smooth, 
+like on the left window in the video above :)
+
+
 ## Usage
 
 Add the plugin to your project. Replace `3d` with `2d` if you are using Avian 2D.
@@ -69,6 +90,7 @@ The interpolation source will be their [`Position`] and [`Rotation`].
 |---------------|---------|-------|
 | `main`       | `main` | `0.14` |
 
+[`physics_in_fixed_timestep`]: https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs
 [`AvianInterpolationPlugin`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L53
 [`PhysicsPlugins`]: https://docs.rs/avian3d/latest/avian3d/struct.PhysicsPlugins.html
 [`Transform`]: https://docs.rs/bevy/latest/bevy/transform/components/struct.Transform.html
