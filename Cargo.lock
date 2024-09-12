@@ -297,7 +297,7 @@ name = "avian2d"
 version = "0.1.2"
 source = "git+https://github.com/Jondolf/avian#a5616dd194aecfef294d70ad9294d20ac68a49d4"
 dependencies = [
- "avian_derive",
+ "avian_derive 0.1.0 (git+https://github.com/Jondolf/avian)",
  "bevy",
  "bevy_math",
  "bitflags 2.6.0",
@@ -314,9 +314,8 @@ dependencies = [
 [[package]]
 name = "avian3d"
 version = "0.1.2"
-source = "git+https://github.com/Jondolf/avian#a5616dd194aecfef294d70ad9294d20ac68a49d4"
 dependencies = [
- "avian_derive",
+ "avian_derive 0.1.0",
  "bevy",
  "bevy_math",
  "bitflags 2.6.0",
@@ -328,6 +327,16 @@ dependencies = [
  "parry3d",
  "parry3d-f64",
  "serde",
+]
+
+[[package]]
+name = "avian_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
 ]
 
 [[package]]

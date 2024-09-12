@@ -1,13 +1,12 @@
 use bevy::app::RunFixedMainLoop;
 
 use crate::prelude::*;
-use crate::previous_transform::{PreviousPosition, PreviousRotation, PreviousScale};
+use crate::previous_transform::{PreviousPosition, PreviousRotation};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         RunFixedMainLoop,
-        (interpolate_rigidbodies, interpolate_colliders)
-            .in_set(AvianInterpolationVariableSystem::Interpolate),
+        interpolate_rigidbodies.in_set(AvianInterpolationVariableSystem::Interpolate),
     );
 }
 
@@ -71,44 +70,13 @@ fn interpolate_rigidbodies(
 
         let new_transform = maybe_parent
             .and_then(|parent| q_global_transform.get(parent.get()).ok())
-            .map(|global_transform| global_transform.reparented_to(global_transform))
+            .map(|parent_global_transform| global_transform.reparented_to(parent_global_transform))
             .unwrap_or_else(|| global_transform.compute_transform());
-        transform.translation = new_transform.translation;
-        transform.rotation = new_transform.rotation;
-    }
-}
-
-fn interpolate_colliders(
-    fixed_time: Res<Time<Fixed>>,
-    mut q_interpolant: Query<
-        (
-            &mut Transform,
-            Option<&Parent>,
-            &Collider,
-            &PreviousScale,
-            &InterpolationMode,
-        ),
-        Without<DisableTransformChanges>,
-    >,
-    q_global_transform: Query<&GlobalTransform>,
-) {
-    // The overstep fraction is a value between 0 and 1 that tells us how far we are between two fixed timesteps.
-    let alpha = fixed_time.overstep_fraction();
-
-    for (mut transform, maybe_parent, collider, previous_scale, interpolation_mode) in
-        &mut q_interpolant
-    {
-        let scale = match interpolation_mode {
-            InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
-            InterpolationMode::None => collider.scale(),
-        };
-        #[cfg(feature = "2d")]
-        let scale = scale.extend(1.);
-
-        let new_scale = maybe_parent
-            .and_then(|parent| q_global_transform.get(parent.get()).ok())
-            .map(|global_transform| scale / global_transform.compute_transform().scale)
-            .unwrap_or(scale);
-        transform.scale = new_scale;
+        if transform.translation != new_transform.translation {
+            transform.translation = new_transform.translation;
+        }
+        if transform.rotation != new_transform.rotation {
+            transform.rotation = new_transform.rotation;
+        }
     }
 }

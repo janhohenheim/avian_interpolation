@@ -34,7 +34,7 @@ bench = false
 serde = { version = "1.0.210", optional = true}
 
 [dependencies.avian3d]
-git = "https://github.com/Jondolf/avian"
+path = "../../../avian/crates/avian3d"
 default-features = false
 features = [
     "3d",
@@ -46,4 +46,4 @@ default-features = false
 
 [dev-dependencies]
 bevy = { version = "0.14.2", features = ["dynamic_linking"] }
-avian3d = { git = "https://github.com/Jondolf/avian" }
+avian3d = { path = "../../../avian/crates/avian3d" }
