@@ -39,17 +39,6 @@ And that's it! The [`Transform`] component of all moving objects will now be int
 This means that the new [`Transform`] will be available in [`Update`] for rendering, spatial sound, moving your camera, etc.
 The interpolation source will be their [`Position`], [`Rotation`], and, if available, [`Collider::scale()`].
 
-Do you have any objects that should not be interpolated? Add [`DisableTransformChanges`] to them:
-
-```rust,ignore
-commands.spawn((
-    Name::new("A wall that will never ever move"),
-    RigidBody::Kinematic,
-    Collider::cuboid(10.0, 10.0, 10.0),
-    DisableTransformChanges,
-));
-```
-
 ## Limitations
 
 - Disables transform syncing, i.e. Avian's feature of translating [`Transform`] to its internal representation and vice versa.
@@ -60,6 +49,8 @@ commands.spawn((
     Depending on your point of view, this is actually a feature ;)
 - Assumes [`PhysicsSchedule`] is left at its default value of [`FixedPostUpdate`].
 - Assumes that all entities with [`Position`] will also have [`Rotation`] and vice versa.
+- Assumes [`RigidBody`]s will not form hierarchies.
+- Assumes [`Rigidbody::Static`] objects will not move.
 
 ## Differences to [`bevy_transform_interpolation`]
 
@@ -81,7 +72,8 @@ commands.spawn((
 [`Transform`]: https://docs.rs/bevy/latest/bevy/transform/components/struct.Transform.html
 [`Position`]: https://docs.rs/avian3d/latest/avian3d/position/struct.Position.html
 [`Rotation`]: https://docs.rs/avian3d/latest/avian3d/position/struct.Rotation.html
-[`DisableTransformChanges`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L109
+[`RigidBody`]: https://docs.rs/avian3d/latest/avian3d/dynamics/rigid_body/enum.RigidBody.html
+[`Rigidbody::Static`]: https://docs.rs/avian3d/latest/avian3d/dynamics/rigid_body/enum.RigidBody.html#variant.Static
 [`Update`]: https://docs.rs/bevy/latest/bevy/app/struct.Update.html
 [`PostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.PostUpdate.html
 [`bevy_transform_interpolation`]: (https://github.com/Jondolf/bevy_transform_interpolation)

@@ -106,6 +106,7 @@ pub enum InterpolationMode {
 
 /// Disables transform changes for a rigid body or a collider.
 /// Add this to entities that you know will never move for a little performance boost.
+/// Note that [`RigidBody::Static`] entities are never interpolated, so adding this to them is pointless.
 /// You can also add it to an entity to implement a different kind of smoothing strategy manually, e.g. extrapolation.
 ///
 /// Note that if the entity's physics transform is changed directly, the [`Transform`] will not be updated.
