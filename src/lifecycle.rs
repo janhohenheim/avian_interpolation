@@ -25,7 +25,7 @@ fn insert_previous_position(
     else {
         return;
     };
-    if matches!(rigid_body, RigidBody::Static) {
+    if rigid_body.is_static() {
         return;
     }
     commands.entity(entity).insert((
@@ -36,7 +36,6 @@ fn insert_previous_position(
         commands.entity(entity).insert(InterpolationMode::default());
     }
 }
-
 
 fn insert_previous_scale(
     trigger: Trigger<OnAdd, Collider>,
