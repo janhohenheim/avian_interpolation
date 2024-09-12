@@ -68,15 +68,11 @@ fn interpolate_rigidbodies(
             rotation,
             ..default()
         });
-        let new_transform = if let Some(parent) = maybe_parent {
-            if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
-                global_transform.reparented_to(parent_global_transform)
-            } else {
-                global_transform.compute_transform()
-            }
-        } else {
-            global_transform.compute_transform()
-        };
+
+        let new_transform = maybe_parent
+            .and_then(|parent| q_global_transform.get(parent.get()).ok())
+            .map(|global_transform| global_transform.reparented_to(global_transform))
+            .unwrap_or_else(|| global_transform.compute_transform());
         transform.translation = new_transform.translation;
         transform.rotation = new_transform.rotation;
     }
@@ -109,15 +105,10 @@ fn interpolate_colliders(
         #[cfg(feature = "2d")]
         let scale = scale.extend(1.);
 
-        let new_scale = if let Some(parent) = maybe_parent {
-            if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
-                scale / parent_global_transform.compute_transform().scale
-            } else {
-                scale
-            }
-        } else {
-            scale
-        };
+        let new_scale = maybe_parent
+            .and_then(|parent| q_global_transform.get(parent.get()).ok())
+            .map(|global_transform| scale / global_transform.compute_transform().scale)
+            .unwrap_or(scale);
         transform.scale = new_scale;
     }
 }
