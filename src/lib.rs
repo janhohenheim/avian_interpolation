@@ -41,7 +41,8 @@ mod transform_sync;
 /// App::new()
 ///     .add_plugins((
 ///         DefaultPlugins,
-///         PhysicsPlugins::default(),
+///         // Disabling SyncPlugin is optional, but will get you a performance boost.
+///         PhysicsPlugins::default().build().disable::<SyncPlugin>(),
 ///         AvianInterpolationPlugin::default(),
 ///     ));
 /// ```
@@ -86,7 +87,7 @@ impl Plugin for AvianInterpolationPlugin {
 /// The interpolation mode to use.
 /// Change this value to set the interpolation mode for a rigid body.
 ///
-/// This is added to rigid bodies for you, 
+/// This is added to rigid bodies for you,
 /// but you can also manually initialize it yourself to override the interpolation mode.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]

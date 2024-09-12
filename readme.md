@@ -29,7 +29,8 @@ Now, add [`AvianInterpolationPlugin`] to your app after [`PhysicsPlugins`] and e
 App::new()
     .add_plugins((
         DefaultPlugins,
-        PhysicsPlugins::default(),
+        // Disabling SyncPlugin is optional, but will get you a performance boost.
+        PhysicsPlugins::default().build().disable::<SyncPlugin>(),
         AvianInterpolationPlugin::default(),
     ))
     .run();
