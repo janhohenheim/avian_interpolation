@@ -38,7 +38,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         },
-        RigidBody::Static,
+        RigidBody::Kinematic,
         Collider::from(box_shape),
         Moving,
     ));

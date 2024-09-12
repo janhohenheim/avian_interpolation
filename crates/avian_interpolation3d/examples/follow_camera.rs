@@ -97,7 +97,7 @@ fn setup(
             material: prop_material.clone(),
             ..default()
         },
-        RigidBody::Static,
+        RigidBody::Kinematic,
         Collider::from(box_shape),
         FollowCamera,
     ));

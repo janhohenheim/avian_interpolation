@@ -6,11 +6,12 @@ use crate::previous_transform::{PreviousPosition, PreviousRotation, PreviousScal
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         RunFixedMainLoop,
-        interpolate_transform.in_set(AvianInterpolationVariableSystem::Interpolate),
+        (interpolate_rigidbodies, interpolate_colliders)
+            .in_set(AvianInterpolationVariableSystem::Interpolate),
     );
 }
 
-fn interpolate_transform(
+fn interpolate_rigidbodies(
     fixed_time: Res<Time<Fixed>>,
     mut q_interpolant: Query<
         (
@@ -20,7 +21,6 @@ fn interpolate_transform(
             &Rotation,
             &PreviousPosition,
             &PreviousRotation,
-            Option<(&Collider, &PreviousScale)>,
             &InterpolationMode,
         ),
         Without<DisableTransformChanges>,
@@ -37,7 +37,6 @@ fn interpolate_transform(
         rotation,
         previous_position,
         previous_rotation,
-        maybe_scale,
         interpolation_mode,
     ) in &mut q_interpolant
     {
@@ -64,21 +63,10 @@ fn interpolate_transform(
             InterpolationMode::None => rotation,
         };
 
-        let scale = if let Some((collider, previous_scale)) = maybe_scale {
-            let scale = match interpolation_mode {
-                InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
-                InterpolationMode::None => collider.scale(),
-            };
-            #[cfg(feature = "2d")]
-            let scale = scale.extend(1.);
-            scale
-        } else {
-            Vec3::splat(1.0)
-        };
         let global_transform = GlobalTransform::from(Transform {
             translation,
             rotation,
-            scale,
+            ..default()
         });
         let new_transform = if let Some(parent) = maybe_parent {
             if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
@@ -89,6 +77,47 @@ fn interpolate_transform(
         } else {
             global_transform.compute_transform()
         };
-        *transform = new_transform;
+        transform.translation = new_transform.translation;
+        transform.rotation = new_transform.rotation;
+    }
+}
+
+fn interpolate_colliders(
+    fixed_time: Res<Time<Fixed>>,
+    mut q_interpolant: Query<
+        (
+            &mut Transform,
+            Option<&Parent>,
+            &Collider,
+            &PreviousScale,
+            &InterpolationMode,
+        ),
+        Without<DisableTransformChanges>,
+    >,
+    q_global_transform: Query<&GlobalTransform>,
+) {
+    // The overstep fraction is a value between 0 and 1 that tells us how far we are between two fixed timesteps.
+    let alpha = fixed_time.overstep_fraction();
+
+    for (mut transform, maybe_parent, collider, previous_scale, interpolation_mode) in
+        &mut q_interpolant
+    {
+        let scale = match interpolation_mode {
+            InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
+            InterpolationMode::None => collider.scale(),
+        };
+        #[cfg(feature = "2d")]
+        let scale = scale.extend(1.);
+
+        let new_scale = if let Some(parent) = maybe_parent {
+            if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
+                scale / parent_global_transform.compute_transform().scale
+            } else {
+                scale
+            }
+        } else {
+            scale
+        };
+        transform.scale = new_scale;
     }
 }

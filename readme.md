@@ -44,7 +44,7 @@ Do you have any objects that should not be interpolated? Add [`DisableTransformC
 ```rust,ignore
 commands.spawn((
     Name::new("A wall that will never ever move"),
-    RigidBody::Static,
+    RigidBody::Kinematic,
     Collider::cuboid(10.0, 10.0, 10.0),
     DisableTransformChanges,
 ));
