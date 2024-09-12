@@ -72,10 +72,14 @@ fn interpolate_rigidbodies(
             .and_then(|parent| q_global_transform.get(parent.get()).ok())
             .map(|parent_global_transform| global_transform.reparented_to(parent_global_transform))
             .unwrap_or_else(|| global_transform.compute_transform());
-        if transform.translation != new_transform.translation {
+        if transform
+            .translation
+            .distance_squared(new_transform.translation)
+            > 1e-6
+        {
             transform.translation = new_transform.translation;
         }
-        if transform.rotation != new_transform.rotation {
+        if transform.rotation.dot(new_transform.rotation) < 0.9999 {
             transform.rotation = new_transform.rotation;
         }
     }
