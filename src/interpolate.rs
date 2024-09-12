@@ -1,16 +1,16 @@
 use bevy::app::RunFixedMainLoop;
 
 use crate::prelude::*;
-use crate::previous_transform::{PreviousPosition, PreviousRotation, PreviousScale};
+use crate::previous_transform::{PreviousPosition, PreviousRotation};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         RunFixedMainLoop,
-        interpolate_transform.in_set(AvianInterpolationVariableSystem::Interpolate),
+        interpolate_rigidbodies.in_set(AvianInterpolationVariableSystem::Interpolate),
     );
 }
 
-fn interpolate_transform(
+fn interpolate_rigidbodies(
     fixed_time: Res<Time<Fixed>>,
     mut q_interpolant: Query<
         (
@@ -20,7 +20,6 @@ fn interpolate_transform(
             &Rotation,
             &PreviousPosition,
             &PreviousRotation,
-            Option<(&Collider, &PreviousScale)>,
             &InterpolationMode,
         ),
         Without<DisableTransformChanges>,
@@ -37,7 +36,6 @@ fn interpolate_transform(
         rotation,
         previous_position,
         previous_rotation,
-        maybe_scale,
         interpolation_mode,
     ) in &mut q_interpolant
     {
@@ -64,31 +62,25 @@ fn interpolate_transform(
             InterpolationMode::None => rotation,
         };
 
-        let scale = if let Some((collider, previous_scale)) = maybe_scale {
-            let scale = match interpolation_mode {
-                InterpolationMode::Linear => previous_scale.lerp(collider.scale(), alpha),
-                InterpolationMode::None => collider.scale(),
-            };
-            #[cfg(feature = "2d")]
-            let scale = scale.extend(1.);
-            scale
-        } else {
-            Vec3::splat(1.0)
-        };
         let global_transform = GlobalTransform::from(Transform {
             translation,
             rotation,
-            scale,
+            ..default()
         });
-        let new_transform = if let Some(parent) = maybe_parent {
-            if let Ok(parent_global_transform) = q_global_transform.get(parent.get()) {
-                global_transform.reparented_to(parent_global_transform)
-            } else {
-                global_transform.compute_transform()
-            }
-        } else {
-            global_transform.compute_transform()
-        };
-        *transform = new_transform;
+
+        let new_transform = maybe_parent
+            .and_then(|parent| q_global_transform.get(parent.get()).ok())
+            .map(|parent_global_transform| global_transform.reparented_to(parent_global_transform))
+            .unwrap_or_else(|| global_transform.compute_transform());
+        if transform
+            .translation
+            .distance_squared(new_transform.translation)
+            > 1e-6
+        {
+            transform.translation = new_transform.translation;
+        }
+        if transform.rotation.dot(new_transform.rotation) < 0.9999 {
+            transform.rotation = new_transform.rotation;
+        }
     }
 }
