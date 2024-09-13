@@ -1,3 +1,4 @@
+use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
@@ -13,6 +14,7 @@ pub fn plugin(example: Example) -> impl Plugin {
                 )
                     .chain(),
             );
+        app.observe(add_interpolation_mode);
     }
 }
 
@@ -30,11 +32,19 @@ pub enum Example {
     RotateCamera,
 }
 
+fn add_interpolation_mode(trigger: Trigger<OnAdd, Position>, mut commands: Commands) {
+    commands
+        .entity(trigger.entity())
+        // You don't need this in your own code, we just add it to make sure
+        // we have something to toggle in `toggle_interpolation` :)
+        .insert(InterpolationMode::Linear);
+}
+
 fn toggle_interpolation(mut query: Query<&mut InterpolationMode>) {
     for mut interpolation_mode in &mut query {
         *interpolation_mode = match *interpolation_mode {
-            InterpolationMode::Linear => InterpolationMode::None,
-            InterpolationMode::None => InterpolationMode::Linear,
+            InterpolationMode::Linear => InterpolationMode::Last,
+            InterpolationMode::Last => InterpolationMode::Linear,
         };
     }
 }
@@ -97,8 +107,8 @@ fn update_text(
         return;
     };
     let interpolated = match interpolation_mode {
-        InterpolationMode::Linear => "Linear",
-        InterpolationMode::None => "None",
+        InterpolationMode::Linear => "ON",
+        InterpolationMode::Last => "OFF",
     };
     for mut text in &mut texts {
         text.sections.last_mut().unwrap().value =

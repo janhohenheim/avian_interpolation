@@ -35,10 +35,7 @@ fn cache_previous_transform(
             &mut PreviousPosition,
             &mut PreviousRotation,
         ),
-        (
-            Without<DisableTransformChanges>,
-            Or<(Changed<Position>, Changed<Rotation>)>,
-        ),
+        Or<(Changed<Position>, Changed<Rotation>)>,
     >,
 ) {
     for (position, rotation, mut previous_position, mut previous_rotation) in &mut q_physics {

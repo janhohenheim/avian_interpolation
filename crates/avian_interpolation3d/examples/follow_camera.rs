@@ -13,7 +13,8 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            PhysicsPlugins::default(),
+            // Disabling SyncPlugin is optional, but will get you a performance boost.
+            PhysicsPlugins::default().build().disable::<SyncPlugin>(),
             AvianInterpolationPlugin::default(),
             util::plugin(util::Example::RotateCamera),
         ))

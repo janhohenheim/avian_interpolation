@@ -17,7 +17,8 @@ fn main() {
                 }),
                 ..default()
             }),
-            PhysicsPlugins::default(),
+            // Disabling SyncPlugin is optional, but will get you a performance boost.
+            PhysicsPlugins::default().build().disable::<SyncPlugin>(),
             AvianInterpolationPlugin::default(),
         ))
         .add_systems(Startup, setup)
@@ -102,7 +103,7 @@ fn setup(
         let interpolation_mode = if index == 0 {
             InterpolationMode::Linear
         } else {
-            InterpolationMode::None
+            InterpolationMode::Last
         };
         let material = if index == 0 {
             on_material.clone()
