@@ -105,3 +105,4 @@ The interpolation source will be their [`Position`] and [`Rotation`].
 [`bevy_transform_interpolation`]: (https://github.com/Jondolf/bevy_transform_interpolation)
 [`PhysicsSchedule`]: https://docs.rs/avian3d/latest/avian3d/schedule/struct.PhysicsSchedule.html
 [`FixedPostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.FixedPostUpdate.html
+[`InterpolationMode::Last`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L99
