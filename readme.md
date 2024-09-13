@@ -71,7 +71,7 @@ The interpolation source will be their [`Position`] and [`Rotation`].
     Use [`Position`] and [`Rotation`] instead. [`Transform`] is a purely aesthetic component and should not be modified for physics.
     Depending on your point of view, this is actually a feature ;)
   - You can still read the [`Transform`] of anything just as you would always do, if you want.
-  - If you still want to have your [`Transform`] changed as if you had transform syncing enabled, set [`InterpolationMode::Last`] for that entity.
+  - If you still want to have your [`Transform`] changed as if you had transform syncing enabled, set [`InterpolateTransformFields::translation`] or [`InterpolateTransformFields::rotation`] to [`InterpolationMode::Last`] for that entity.
     This will use the last available physics transform as the interpolation source instead.
 - Assumes [`PhysicsSchedule`] is left at its default value of [`FixedPostUpdate`].
 - Assumes that all entities with [`Position`] will also have [`Rotation`] and vice versa.
@@ -108,5 +108,7 @@ The interpolation source will be their [`Position`] and [`Rotation`].
 [`bevy_transform_interpolation`]: (https://github.com/Jondolf/bevy_transform_interpolation)
 [`PhysicsSchedule`]: https://docs.rs/avian3d/latest/avian3d/schedule/struct.PhysicsSchedule.html
 [`FixedPostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.FixedPostUpdate.html
-[`InterpolationMode::Last`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L99
+[`InterpolationMode::Last`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L129
 [`examples/split_screen_comparison.rs`]: https://github.com/janhohenheim/avian_interpolation/blob/main/crates/avian_interpolation3d/examples/split_screen_comparison.rs
+[`InterpolateTransformFields::translation`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L101
+[`InterpolateTransformFields::rotation`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L103

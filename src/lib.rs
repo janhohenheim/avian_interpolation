@@ -125,9 +125,11 @@ pub enum InterpolationMode {
     /// This is the default.
     #[default]
     Linear,
-    /// No interpolation, use the transform used is the last available physics transform.
+    /// No interpolation, the transform used is the last available physics transform.
+    /// This behaves as if you did not activate the [`AvianInterpolationPlugin`] for this field.
     Last,
-    /// No interpolation, don't change the transform at all.
+    /// No interpolation, don't change the transform at all. Use this if you want to control
+    /// the [`Transform`] yourself to implement custom interpolation logic like extrapolation.
     None,
 }
 
