@@ -21,7 +21,7 @@ use bevy::{app::RunFixedMainLoop, prelude::*, time::run_fixed_main_schedule};
 pub mod prelude {
     pub(crate) use crate::avian::{self, prelude::*};
     pub(crate) use crate::{AvianInterpolationFixedSystem, AvianInterpolationVariableSystem};
-    pub use crate::{AvianInterpolationPlugin, DisableTransformChanges, InterpolationMode};
+    pub use crate::{AvianInterpolationPlugin, InterpolateTransformFields, InterpolationMode};
     pub(crate) use bevy::prelude::*;
 }
 
@@ -55,7 +55,7 @@ pub struct AvianInterpolationPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<(InterpolationMode, DisableTransformChanges)>();
+        app.register_type::<InterpolateTransformFields>();
         app.add_plugins((
             previous_transform::plugin,
             interpolate::plugin,
@@ -84,13 +84,37 @@ impl Plugin for AvianInterpolationPlugin {
     }
 }
 
-/// The interpolation mode to use.
-/// Change this value to set the interpolation mode for a rigid body.
+/// Controls which fields of the transform are interpolated. This component is absent by default,
+/// in which case all fields are assumed to be [`InterpolationMode::Linear`].
+/// You can insert this component into non-static rigid bodies to interpolate only certain fields.
 ///
-/// This is added to rigid bodies for you,
-/// but you can also manually initialize it yourself to override the interpolation mode.
+/// Placing this on something else than a non-static rigid body will have no effect.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
-#[reflect(Component)]
+#[reflect(Component, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct InterpolateTransformFields {
+    /// Whether to interpolate [`Transform::translation`] based on [`Position`].
+    pub translation: InterpolationMode,
+    /// Whether to interpolate [`Transform::rotation`] based on [`Rotation`].
+    pub rotation: InterpolationMode,
+}
+
+impl From<InterpolationMode> for InterpolateTransformFields {
+    fn from(mode: InterpolationMode) -> Self {
+        Self {
+            translation: mode,
+            rotation: mode,
+        }
+    }
+}
+
+/// The interpolation mode to use on a given transform field in [`InterpolateTransformFields`].
+#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Reflect)]
+#[reflect(Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
@@ -101,24 +125,13 @@ pub enum InterpolationMode {
     /// This is the default.
     #[default]
     Linear,
-    /// No interpolation, i.e. the transform used is the last available physics transform.
+    /// No interpolation, the transform used is the last available physics transform.
+    /// This behaves as if you did not activate the [`AvianInterpolationPlugin`] for this field.
+    Last,
+    /// No interpolation, don't change the transform at all. Use this if you want to control
+    /// the [`Transform`] yourself to implement custom interpolation logic like extrapolation.
     None,
 }
-
-/// Disables transform changes for a rigid body.
-/// Add this to entities that you know will never move for a little performance boost.
-/// Note that [`RigidBody::Static`] entities are never interpolated, so adding this to them is pointless.
-/// You can also add it to an entity to implement a different kind of smoothing strategy manually, e.g. extrapolation.
-///
-/// Note that if the entity's physics transform is changed directly, the [`Transform`] will not be updated.
-#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
-#[reflect(Component)]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde::Serialize, serde::Deserialize),
-    reflect(Serialize, Deserialize)
-)]
-pub struct DisableTransformChanges;
 
 /// The system set for the fixed update loop.
 /// This is scheduled in [`FixedPreUpdate`].
