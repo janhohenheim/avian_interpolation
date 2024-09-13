@@ -2,9 +2,12 @@
 
 A general-purpose [`Transform`] interpolation plugin for fixed timesteps in [Avian Physics](https://github.com/Jondolf/avian/) for the [Bevy engine](https://bevyengine.org/).
 
+[`examples/split_screen_comparison.rs`]:
+
 <video src="https://github.com/user-attachments/assets/919c4809-0502-4b37-b789-261b7e9c7c30" width="50%">
 A video showing the difference between enabled and disabled interpolation.
 </video>
+
 *Note: The interpolation on the left is smoother in reality, blame the video recording software ;)*
 
 ## Why do I need interpolation?
@@ -106,3 +109,4 @@ The interpolation source will be their [`Position`] and [`Rotation`].
 [`PhysicsSchedule`]: https://docs.rs/avian3d/latest/avian3d/schedule/struct.PhysicsSchedule.html
 [`FixedPostUpdate`]: https://docs.rs/bevy/latest/bevy/app/struct.FixedPostUpdate.html
 [`InterpolationMode::Last`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L99
+[`examples/split_screen_comparison.rs`]: https://github.com/janhohenheim/avian_interpolation/blob/main/crates/avian_interpolation3d/examples/split_screen_comparison.rs

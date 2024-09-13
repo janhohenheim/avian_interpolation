@@ -55,7 +55,7 @@ pub struct AvianInterpolationPlugin;
 
 impl Plugin for AvianInterpolationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<(InterpolationMode, InterpolateTransformFields)>();
+        app.register_type::<InterpolateTransformFields>();
         app.add_plugins((
             previous_transform::plugin,
             interpolate::plugin,
@@ -84,13 +84,37 @@ impl Plugin for AvianInterpolationPlugin {
     }
 }
 
-/// The interpolation mode to use. This component is absent by default,
-/// in which case [`InterpolationMode::Linear`] is assumed.
-/// Add this component to a non-static rigid body to change the interpolation mode.
+/// Controls which fields of the transform are interpolated. This component is absent by default,
+/// in which case all fields are assumed to be [`InterpolationMode::Linear`].
+/// You can insert this component into non-static rigid bodies to interpolate only certain fields.
 ///
 /// Placing this on something else than a non-static rigid body will have no effect.
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
-#[reflect(Component)]
+#[reflect(Component, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct InterpolateTransformFields {
+    /// Whether to interpolate [`Transform::translation`] based on [`Position`].
+    pub translation: InterpolationMode,
+    /// Whether to interpolate [`Transform::rotation`] based on [`Rotation`].
+    pub rotation: InterpolationMode,
+}
+
+impl From<InterpolationMode> for InterpolateTransformFields {
+    fn from(mode: InterpolationMode) -> Self {
+        Self {
+            translation: mode,
+            rotation: mode,
+        }
+    }
+}
+
+/// The interpolation mode to use on a given transform field in [`InterpolateTransformFields`].
+#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq, Reflect)]
+#[reflect(Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
@@ -101,38 +125,10 @@ pub enum InterpolationMode {
     /// This is the default.
     #[default]
     Linear,
-    /// No interpolation, i.e. the transform used is the last available physics transform.
+    /// No interpolation, use the transform used is the last available physics transform.
     Last,
-}
-
-/// Controls which fields of the transform are interpolated. This component is absent by default,
-/// in which case both `translation` and `rotation` are interpolated.
-/// You can insert this component into non-static rigid bodies to interpolate only certain fields.
-///
-/// Placing this on something else than a non-static rigid body will have no effect.
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Component, Reflect)]
-#[reflect(Component)]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde::Serialize, serde::Deserialize),
-    reflect(Serialize, Deserialize)
-)]
-pub struct InterpolateTransformFields {
-    /// Whether to interpolate [`Transform::translation`] based on [`Position`].
-    /// Defaults to `true`.
-    pub translation: bool,
-    /// Whether to interpolate [`Transform::rotation`] based on [`Rotation`].
-    /// Defaults to `true`.
-    pub rotation: bool,
-}
-
-impl Default for InterpolateTransformFields {
-    fn default() -> Self {
-        Self {
-            translation: true,
-            rotation: true,
-        }
-    }
+    /// No interpolation, don't change the transform at all.
+    None,
 }
 
 /// The system set for the fixed update loop.

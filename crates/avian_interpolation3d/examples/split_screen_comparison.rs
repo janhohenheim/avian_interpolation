@@ -120,7 +120,7 @@ fn setup(
             RigidBody::Kinematic,
             Collider::from(box_shape),
             FollowCamera(camera),
-            interpolation_mode,
+            InterpolateTransformFields::from(interpolation_mode),
         ));
     }
 

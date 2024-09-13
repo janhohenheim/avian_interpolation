@@ -19,7 +19,6 @@ fn interpolate_rigid_bodies(
         &Rotation,
         &PreviousPosition,
         &PreviousRotation,
-        Option<&InterpolationMode>,
         Option<&InterpolateTransformFields>,
     )>,
     q_global_transform: Query<&GlobalTransform>,
@@ -34,17 +33,19 @@ fn interpolate_rigid_bodies(
         rotation,
         previous_position,
         previous_rotation,
-        maybe_interpolation_mode,
         maybe_interpolate_transform_fields,
     ) in &mut q_interpolant
     {
-        let interpolation_mode = maybe_interpolation_mode.copied().unwrap_or_default();
-        let translation = match interpolation_mode {
-            InterpolationMode::Linear => previous_position.lerp(position.0, alpha),
-            InterpolationMode::Last => position.0,
+        let interpolate_transform_fields = maybe_interpolate_transform_fields
+            .copied()
+            .unwrap_or_default();
+        let translation = match interpolate_transform_fields.translation {
+            InterpolationMode::Linear => Some(previous_position.lerp(position.0, alpha)),
+            InterpolationMode::Last => Some(position.0),
+            InterpolationMode::None => None,
         };
         #[cfg(feature = "2d")]
-        let translation = translation.extend(0.);
+        let translation = translation.map(|translation| translation.extend(0.));
 
         let rotation = {
             #[cfg(feature = "2d")]
@@ -57,38 +58,37 @@ fn interpolate_rigid_bodies(
             }
         };
 
-        let rotation = match interpolation_mode {
-            InterpolationMode::Linear => previous_rotation.slerp(rotation, alpha),
-            InterpolationMode::Last => rotation,
+        let rotation = match interpolate_transform_fields.rotation {
+            InterpolationMode::Linear => Some(previous_rotation.slerp(rotation, alpha)),
+            InterpolationMode::Last => Some(rotation),
+            InterpolationMode::None => None,
         };
 
-        let global_transform = GlobalTransform::from(Transform {
-            translation,
-            rotation,
-            ..default()
+        let maybe_parent_transform = maybe_parent
+            .and_then(|parent| q_global_transform.get(parent.get()).ok())
+            .map(|global_transform| global_transform.compute_transform());
+
+        let new_translation = translation.map(|translation| {
+            maybe_parent_transform
+                .map(|parent_transform| translation - parent_transform.translation)
+                .unwrap_or(translation)
         });
 
-        let new_transform = maybe_parent
-            .and_then(|parent| q_global_transform.get(parent.get()).ok())
-            .map(|parent_global_transform| global_transform.reparented_to(parent_global_transform))
-            .unwrap_or_else(|| global_transform.compute_transform());
+        let new_rotation = rotation.map(|rotation| {
+            maybe_parent_transform
+                .map(|parent_transform| rotation * parent_transform.rotation.inverse())
+                .unwrap_or(rotation)
+        });
 
-        let interpolate_transform_fields = maybe_interpolate_transform_fields
-            .copied()
-            .unwrap_or_default();
-
-        if transform
-            .translation
-            .distance_squared(new_transform.translation)
-            > 1e-6
-            && interpolate_transform_fields.translation
-        {
-            transform.translation = new_transform.translation;
+        if let Some(translation) = new_translation {
+            if transform.translation.distance_squared(translation) > 1e-6 {
+                transform.translation = translation;
+            }
         }
-        if transform.rotation.dot(new_transform.rotation) < 0.9999
-            && interpolate_transform_fields.rotation
-        {
-            transform.rotation = new_transform.rotation;
+        if let Some(rotation) = new_rotation {
+            if transform.rotation.dot(rotation) < 0.9999 {
+                transform.rotation = rotation;
+            }
         }
     }
 }

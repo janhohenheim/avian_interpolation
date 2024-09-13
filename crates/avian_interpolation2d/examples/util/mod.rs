@@ -29,19 +29,35 @@ pub enum Example {
     Moving,
 }
 
-fn add_interpolation_mode(trigger: Trigger<OnAdd, Position>, mut commands: Commands) {
+fn add_interpolation_mode(
+    trigger: Trigger<OnAdd, RigidBody>,
+    q_rigid_body: Query<&RigidBody>,
+    mut commands: Commands,
+) {
+    let Ok(rigid_body) = q_rigid_body.get(trigger.entity()) else {
+        return;
+    };
+    if rigid_body.is_static() {
+        return;
+    }
     commands
         .entity(trigger.entity())
         // You don't need this in your own code, we just add it to make sure
         // we have something to toggle in `toggle_interpolation` :)
-        .insert(InterpolationMode::Linear);
+        .insert(InterpolateTransformFields::default());
 }
 
-fn toggle_interpolation(mut query: Query<&mut InterpolationMode>) {
-    for mut interpolation_mode in &mut query {
-        *interpolation_mode = match *interpolation_mode {
+fn toggle_interpolation(
+    mut query: Query<&mut InterpolateTransformFields>,
+    mut current_mode: Local<InterpolationMode>,
+) {
+    for mut interpolation in &mut query {
+        interpolation.translation = *current_mode;
+        interpolation.rotation = *current_mode;
+        *current_mode = match *current_mode {
             InterpolationMode::Linear => InterpolationMode::Last,
             InterpolationMode::Last => InterpolationMode::Linear,
+            InterpolationMode::None => unreachable!("Not shown in this example."),
         };
     }
 }
@@ -93,14 +109,15 @@ fn spawn_text(example: Example) -> impl Fn(Commands) {
 
 fn update_text(
     mut texts: Query<&mut Text, With<InstructionText>>,
-    interpolation_modes: Query<&InterpolationMode>,
+    q_interpolation: Query<&InterpolateTransformFields>,
 ) {
-    let Some(interpolation_mode) = interpolation_modes.iter().next() else {
+    let Some(interpolation) = q_interpolation.iter().next() else {
         return;
     };
-    let interpolated = match interpolation_mode {
+    let interpolated = match interpolation.translation {
         InterpolationMode::Linear => "ON",
         InterpolationMode::Last => "OFF",
+        InterpolationMode::None => unreachable!("Not shown in this example."),
     };
     for mut text in &mut texts {
         text.sections.last_mut().unwrap().value =
