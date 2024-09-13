@@ -38,7 +38,7 @@ fn interpolate_rigid_bodies(
         maybe_interpolate_transform_fields,
     ) in &mut q_interpolant
     {
-        let interpolation_mode = maybe_interpolation_mode.map(|i| *i).unwrap_or_default();
+        let interpolation_mode = maybe_interpolation_mode.copied().unwrap_or_default();
         let translation = match interpolation_mode {
             InterpolationMode::Linear => previous_position.lerp(position.0, alpha),
             InterpolationMode::Last => position.0,
@@ -74,7 +74,7 @@ fn interpolate_rigid_bodies(
             .unwrap_or_else(|| global_transform.compute_transform());
 
         let interpolate_transform_fields = maybe_interpolate_transform_fields
-            .map(|i| *i)
+            .copied()
             .unwrap_or_default();
 
         if transform
