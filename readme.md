@@ -112,3 +112,4 @@ The interpolation source will be their [`Position`] and [`Rotation`].
 [`examples/split_screen_comparison.rs`]: https://github.com/janhohenheim/avian_interpolation/blob/main/crates/avian_interpolation3d/examples/split_screen_comparison.rs
 [`InterpolateTransformFields::translation`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L101
 [`InterpolateTransformFields::rotation`]: https://github.com/janhohenheim/avian_interpolation/blob/main/src/lib.rs#L103
+[`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation)
