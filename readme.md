@@ -1,3 +1,9 @@
+
+> [!IMPORTANT]  
+> This plugin is no longer maintained. [`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation) now does everything this plugin
+> used to do, and only costs a dozen or so MiB more RAM to run. In exchange, it works with non-avian types and has the brilliant quality of existing without me
+> updating it. Nice! I advise you all to use it instead of this plugin :)
+
 # Avian Interpolation
 
 A general-purpose [`Transform`] interpolation plugin for fixed timesteps in [Avian Physics](https://github.com/Jondolf/avian/) for the [Bevy engine](https://bevyengine.org/).
